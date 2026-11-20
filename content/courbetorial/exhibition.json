@@ -1,0 +1,582 @@
+{
+  "id": "courbetorial",
+  "title": "I, Gustave Courbet. Painter and Rebel",
+  "subtitle": "“Courbetorial” – the digital exhibition guide",
+  "locale": "en",
+  "theme": {
+    "colors": {},
+    "fonts": {}
+  },
+  "credits": [
+    "Content from “Courbetorial”, Museum Folkwang, on Google Arts & Culture.",
+    "Text & Concept: Education and Outreach, Museum Folkwang (Jana Kibat, Peter Daners)",
+    "Implementation: Marcus Feldbrügge",
+    "Narrator: Raphael Westermeier"
+  ],
+  "sources": [
+    {
+      "label": "Part 1 on Google Arts & Culture",
+      "url": "https://artsandculture.google.com/story/cwUhqsK169G5_Q"
+    },
+    {
+      "label": "Part 2 on Google Arts & Culture",
+      "url": "https://artsandculture.google.com/story/OwUx2wN7M2clhA"
+    },
+    {
+      "label": "Part 3 on Google Arts & Culture",
+      "url": "https://artsandculture.google.com/story/lAXxRK7HA6T9UA"
+    }
+  ],
+  "defaults": {
+    "size": "M",
+    "textVariant": "long"
+  },
+  "chapters": [
+    {
+      "id": "introduction",
+      "label": "Intro",
+      "title": "Introduction",
+      "sections": [
+        {
+          "works": [
+            "self-portrait"
+          ],
+          "options": {},
+          "layout": "hero",
+          "kicker": "Introduction",
+          "text": [
+            "I, GUSTAVE COURBET. PAINTER AND REBEL, created in collaboration with the Leopold Museum in Vienna, traces the artistic path of Gustave Courbet (1819–1877) from his early works to his late oeuvre and reveals the diversity of his creative practice."
+          ],
+          "id": "introduction-1"
+        },
+        {
+          "works": [
+            "untitled-1855"
+          ],
+          "options": {},
+          "layout": "gallery",
+          "id": "introduction-2"
+        },
+        {
+          "works": [],
+          "options": {},
+          "layout": "text",
+          "text": [
+            "As a central figure of Realism, Courbet called traditional ideals of beauty and academic rules into question. He rejected the idealised aesthetics of his time and instead made the lives of ordinary people and reality itself the subjects of his art. Through his independent stance as a politically engaged, well-connected artist and his innovative way of painting, he attracted international attention.",
+            "Alongside the provocative innovator, this exhibition, which brings together important loans from international museums, also presents another Courbet: a precise observer whose portraits, landscapes and still lifes are shaped by calm, reflection and personal introspection."
+          ],
+          "id": "introduction-3"
+        }
+      ]
+    },
+    {
+      "id": "self-portraits",
+      "label": "1",
+      "title": "Self-portraits",
+      "sections": [
+        {
+          "works": [],
+          "options": {},
+          "layout": "chapter-intro",
+          "kicker": "Section 1",
+          "title": "Self-portraits",
+          "text": [
+            "This exhibition presents several important self-portraits by Gustave Courbet, created between 1840 and 1855, which testify to Courbet’s desire for constant self-assurance as an artist and for recognition in the art world of his time. In them, he staged himself skilfully and with a keen sense of the art market in various roles:",
+            "as a young rebel with a pipe, as a man almost driven mad by fear, as a melancholy dreamer, or as a sensitive musician with a violoncello. These self-representations often became visible to the public through Courbet’s submissions to the Salon exhibitions and thus shaped the public image of the artist, who, after 1855, increasingly learned to use photography to establish his image."
+          ],
+          "id": "self-portraits-1"
+        },
+        {
+          "works": [
+            "the-man-with-the-fear"
+          ],
+          "options": {},
+          "layout": "work-focus",
+          "id": "self-portraits-2"
+        },
+        {
+          "works": [
+            "portrait-of-bruyas",
+            "the-meeting"
+          ],
+          "options": {},
+          "layout": "compare",
+          "text": [
+            "Alfred Bruyas, shown here in profile, was one of Gustave Courbet’s most important patrons and collectors. By purchasing key works and offering him moral support, he contributed substantially to securing the artist’s financial stability and artistic freedom. In 1854, Bruyas invited Courbet to his hometown of Montpellier to paint there.",
+            "The new experience of Mediterranean light and of the sea became a revelation for Courbet and led to a lighter palette. Self-confident and independent, the artist encounters his patron in the famous painting The Meeting (Bonjour, Monsieur Courbet) on his return from a painting excursion."
+          ],
+          "id": "self-portraits-3"
+        }
+      ]
+    },
+    {
+      "id": "ornans",
+      "label": "2",
+      "title": "Ornans",
+      "sections": [
+        {
+          "works": [
+            "view-of-ornans"
+          ],
+          "options": {},
+          "layout": "chapter-intro",
+          "kicker": "Section 2",
+          "title": "Ornans",
+          "text": [
+            "The landscapes around Ornans and the Franche-Comté form a central focus in Gustave Courbet’s work. Despite living in Paris, he regularly returned to his native region in order to study and paint its natural surroundings intensively. Rivers, forests, rock formations and valleys served as motifs for a form of painting based on direct observation.",
+            "By renouncing idealised landscape images and using a pastose application of paint, Courbet developed a new and particularly compelling way of representing natural forms and surfaces."
+          ],
+          "id": "ornans-1"
+        },
+        {
+          "works": [
+            "the-oraguay-rock-maisieres-valley-doubs"
+          ],
+          "options": {},
+          "layout": "work-focus",
+          "id": "ornans-2"
+        },
+        {
+          "works": [],
+          "options": {
+            "style": "quote"
+          },
+          "layout": "text",
+          "text": [
+            "“To paint a country, one must know it. I know my country. I paint it. This undergrowth is where we live; this river is the Loue. Look around there and you will see my picture.”"
+          ],
+          "attribution": "Gustave Courbet to Edgar Monteil, quoted in Georges Riat, Gustave Courbet, Peintre, Paris, 1906",
+          "id": "ornans-3"
+        },
+        {
+          "works": [
+            "the-manbouc-valley",
+            "the-cour-napoleon-seen-from-the-tuileries-louvre-paris"
+          ],
+          "options": {},
+          "layout": "work-focus",
+          "id": "ornans-4"
+        },
+        {
+          "works": [],
+          "options": {},
+          "layout": "text",
+          "text": [
+            "When he was partially excluded from participating in the 1855 universal exhibition, he responded by creating his own exhibition building, the “Pavillon du Réalisme,” thereby making a statement for artistic independence."
+          ],
+          "id": "ornans-5"
+        }
+      ]
+    },
+    {
+      "id": "social-realities",
+      "label": "3",
+      "title": "Social realities",
+      "sections": [
+        {
+          "works": [
+            "the-stone-breakers"
+          ],
+          "options": {},
+          "layout": "chapter-intro",
+          "kicker": "Section 3",
+          "title": "Social realities",
+          "text": [
+            "Gustave Courbet understood his art as a direct response to the social and political upheavals of his time. Instead of idealised figures and historical subjects, he placed the lives of ordinary people at the centre of his work. During a period of profound social and political change, he sympathized with the February Revolution of 1848 and shared its demands for political and social transformation.",
+            "With this turn toward social reality, he consciously distanced himself from academic traditions. His often provocative works sparked controversial debates, yet they also made him a key figure of Realism and one of the most influential artists of the nineteenth century."
+          ],
+          "id": "social-realities-1"
+        },
+        {
+          "works": [
+            "portrait-of-charles-baudelaire",
+            "the-apostle-jean-journet"
+          ],
+          "options": {},
+          "layout": "work-focus",
+          "id": "social-realities-2"
+        },
+        {
+          "works": [],
+          "options": {},
+          "layout": "text",
+          "text": [
+            "These folk songs were not merely a form of entertainment; they also served as a medium of political critique. Courbet was close to this milieu: he used the portrait of the well-known Fourierist Jean Journet, an itinerant preacher, as the title image for one of these songs. Courbet’s interest in the competition for a “Song of the People” likewise shows his closeness to workers’ poetry and music."
+          ],
+          "id": "social-realities-3"
+        },
+        {
+          "works": [
+            "jean-journet-1799-1861"
+          ],
+          "options": {},
+          "layout": "gallery",
+          "id": "social-realities-4"
+        },
+        {
+          "works": [],
+          "options": {
+            "style": "quote"
+          },
+          "layout": "text",
+          "text": [
+            "“Realism is, by its very nature, democratic art”"
+          ],
+          "attribution": "Gustave Courbet, 1855",
+          "id": "social-realities-5"
+        },
+        {
+          "works": [
+            "the-apostle-jean-journet-setting-out-for-the-conquest-of-uni"
+          ],
+          "options": {},
+          "layout": "gallery",
+          "id": "social-realities-6"
+        },
+        {
+          "works": [
+            "after-dinner-at-ornans",
+            "portrait-of-the-poet-pierre-dupont"
+          ],
+          "options": {},
+          "layout": "work-focus",
+          "id": "social-realities-7"
+        }
+      ]
+    },
+    {
+      "id": "biography",
+      "label": "4",
+      "title": "Biography",
+      "sections": [
+        {
+          "works": [
+            "portrait-of-gustave-courbet"
+          ],
+          "options": {},
+          "layout": "chapter-intro",
+          "kicker": "Section 4",
+          "title": "Biography",
+          "text": [],
+          "id": "biography-1"
+        }
+      ]
+    },
+    {
+      "id": "hunting",
+      "label": "5",
+      "title": "Hunting",
+      "sections": [
+        {
+          "works": [
+            "view-in-the-forest-of-fontainebleau"
+          ],
+          "options": {},
+          "layout": "chapter-intro",
+          "kicker": "Section 5",
+          "title": "Hunting",
+          "text": [
+            "Courbet’s early hunting scenes combine precise observation with the knowledge of animals that he had gathered on excursions through the forests of his native region. Courbet was interested in hunting not only as a new element of bourgeois country life. The figure of the hunter also represented his own understanding of a human being closely connected to nature. In this group of works, Courbet shows the different phases of the hunt.",
+            "The fleeing stag appears dramatically animated, the slain animal like a trophy, while hunters and dogs rest in the dark, idyllic forest."
+          ],
+          "id": "hunting-1"
+        },
+        {
+          "works": [
+            "the-german-huntsman"
+          ],
+          "options": {},
+          "layout": "work-focus",
+          "id": "hunting-2"
+        }
+      ]
+    },
+    {
+      "id": "seascapes",
+      "label": "6",
+      "title": "Seascapes",
+      "sections": [
+        {
+          "works": [
+            "calm-sea"
+          ],
+          "options": {},
+          "layout": "chapter-intro",
+          "kicker": "Section 6",
+          "title": "Seascapes",
+          "text": [
+            "Courbet first experienced the expanse of the ocean and the force of the waves in Normandy in 1841. Later, too, he repeatedly painted on the Norman coast, for example in Étretat, Trouville, and Honfleur. His encounter with the sea opened up a field of motifs that occupied him for many years."
+          ],
+          "id": "seascapes-1"
+        },
+        {
+          "works": [
+            "seascape"
+          ],
+          "options": {},
+          "layout": "gallery",
+          "id": "seascapes-2"
+        },
+        {
+          "works": [],
+          "options": {},
+          "layout": "text",
+          "text": [
+            "On the coasts of Normandy and the Mediterranean, he created paintings that capture the most varied manifestations of water and weather – from turbulent waves to calm horizons. Human figures rarely come to the fore; the focus is on the dynamics of nature.",
+            "With the palette knife and a multilayered application of paint, Courbet gave his seascapes a pronounced physicality. The strong response to these works led him to return to individual motifs several times and vary them."
+          ],
+          "id": "seascapes-3"
+        },
+        {
+          "works": [],
+          "options": {
+            "style": "quote"
+          },
+          "layout": "text",
+          "text": [
+            "“In a large empty room, a gigantic, dirty, greasy man pressed daubs of white paint onto a large blank canvas with a kitchen knife.",
+            "From time to time he stepped to the window, pressed his face against the panes, and looked out into the storm. The sea came so close that it seemed about to strike the house, which was immersed in foam and noise."
+          ],
+          "id": "seascapes-4"
+        },
+        {
+          "works": [
+            "la-vague-the-wave"
+          ],
+          "options": {},
+          "layout": "gallery",
+          "id": "seascapes-5"
+        },
+        {
+          "works": [],
+          "options": {
+            "style": "quote"
+          },
+          "layout": "text",
+          "text": [
+            "The dirty water beat against the windowpanes like hail and dripped down the walls. On the mantelpiece stood a bottle of cider and a half-empty glass.",
+            "Every so often Courbet drank a little of it and then returned to his painting. The work became The Wave and caused a certain sensation in the world.”"
+          ],
+          "attribution": "Guy de Maupassant, 1886",
+          "id": "seascapes-6"
+        },
+        {
+          "works": [
+            "la-vague-the-wave",
+            "the-great-wave",
+            "coastal-landscape"
+          ],
+          "options": {},
+          "layout": "work-focus",
+          "id": "seascapes-7"
+        },
+        {
+          "works": [],
+          "options": {},
+          "layout": "text",
+          "text": [
+            "Courbet also painted the Porte d’Aval several times, a picturesque stone arch already visited by tourists in his day. The motif was later taken up repeatedly by the Impressionist Claude Monet."
+          ],
+          "id": "seascapes-8"
+        },
+        {
+          "works": [
+            "the-cliff-and-the-porte-d-aval"
+          ],
+          "options": {},
+          "layout": "gallery",
+          "id": "seascapes-9"
+        }
+      ]
+    },
+    {
+      "id": "nudes-and-images-of-women",
+      "label": "7",
+      "title": "Nudes and images of women",
+      "sections": [
+        {
+          "works": [
+            "the-source"
+          ],
+          "options": {},
+          "layout": "chapter-intro",
+          "kicker": "Section 7",
+          "title": "Nudes and images of women",
+          "text": [
+            "Gustave Courbet’s depictions of the nude are among the most striking works in his oeuvre. Instead of idealized figures, he shows the human, mostly female body realistically and without embellishment. With The Origin of the World, he radicalizes this approach: the sharply reduced crop focuses exclusively on the female lower abdomen and dispenses with any narrative framing.",
+            "The painting, created in 1866 for the Ottoman diplomat and art collector Khalil Bey, remained hidden for a long time and only became known to a broader public in the twentieth century. Artistic responses to this taboo-breaking work are numerous: from Marcel Duchamp’s late work Étant donnés to Balthasar Burkhard’s photographic paraphrase and the French artist Orlan, who, in a composition modeled on Courbet, shows a phallus instead of the vulva:",
+            "In her work, with a critical view of the male world, The Origin of the World becomes L’Origine de la guerre, that is, The Origin of War."
+          ],
+          "id": "nudes-and-images-of-women-1"
+        },
+        {
+          "works": [
+            "jo-the-beautiful-irish-girl"
+          ],
+          "options": {},
+          "layout": "work-focus",
+          "id": "nudes-and-images-of-women-2"
+        },
+        {
+          "works": [],
+          "options": {},
+          "layout": "text",
+          "text": [
+            "Like Gustave Courbet, James McNeill Whistler was fascinated by Joanna Hiffernan and painted the “beautiful Irishwoman” several times, including in this 1862 painting entitled Symphony in White, No. 1: The White Girl. Until 1864, she was not only Whistler’s preferred model, but also his partner."
+          ],
+          "id": "nudes-and-images-of-women-3"
+        },
+        {
+          "works": [
+            "symphony-in-white-no-1-the-white-girl"
+          ],
+          "options": {},
+          "layout": "gallery",
+          "id": "nudes-and-images-of-women-4"
+        }
+      ]
+    },
+    {
+      "id": "springs",
+      "label": "8",
+      "title": "Springs",
+      "sections": [
+        {
+          "works": [
+            "the-source-of-the-loue"
+          ],
+          "options": {},
+          "layout": "chapter-intro",
+          "kicker": "Section 8",
+          "title": "Springs",
+          "text": [
+            "Courbet’s depictions of grottos and springs are among his most distinctive landscapes. Inspired by the Jura region, his homeland, he directed his painterly gaze toward rocky ravines, caves, and watercourses. Instead of idyllic nature, he shows primal, powerful settings.",
+            "With a sculptural application of paint using palette-knife technique, he makes geological structures and flowing water immediately tangible. These motifs are often interpreted as symbols of origin, mystery, and hidden inner worlds."
+          ],
+          "id": "springs-1"
+        },
+        {
+          "works": [
+            "the-source-of-the-lison"
+          ],
+          "options": {},
+          "layout": "work-focus",
+          "id": "springs-2"
+        }
+      ]
+    },
+    {
+      "id": "photography-and-caricatures",
+      "label": "9",
+      "title": "Photography and caricatures",
+      "sections": [
+        {
+          "works": [],
+          "options": {},
+          "layout": "chapter-intro",
+          "kicker": "Section 9",
+          "title": "Photography and caricatures",
+          "text": [
+            "Gustave Courbet recognised the potential of photography early on and maintained close contacts with photographers of his time. He used the new medium both to disseminate his public image and to reproduce his works. Photographs also served him as a visual resource for painting.",
+            "While critics saw this as a lack of artistic composition, the almost photographic pictorial solutions in his works testify to a conscious engagement with the expressive possibilities of the new medium."
+          ],
+          "id": "photography-and-caricatures-1"
+        },
+        {
+          "works": [
+            "courbet-par-gill"
+          ],
+          "options": {},
+          "layout": "work-focus",
+          "id": "photography-and-caricatures-2"
+        }
+      ]
+    },
+    {
+      "id": "drawings",
+      "label": "10",
+      "title": "Drawings",
+      "sections": [
+        {
+          "works": [],
+          "options": {},
+          "layout": "chapter-intro",
+          "kicker": "Section 10",
+          "title": "Drawings",
+          "text": [
+            "Gustave Courbet’s drawings remain among the less familiar areas of his oeuvre. Their true extent has only become visible through recent research. Drawings after his own paintings, which functioned as mementos or documentary pieces, are of particular importance. In his large-format charcoal works, Courbet demonstrates his full mastery: by bringing light out of a dark ground, he creates striking pictorial effects."
+          ],
+          "id": "drawings-1"
+        },
+        {
+          "works": [
+            "drawing-paysage-de-l-herault"
+          ],
+          "options": {},
+          "layout": "work-focus",
+          "id": "drawings-2"
+        }
+      ]
+    },
+    {
+      "id": "exile-and-final-years",
+      "label": "11",
+      "title": "Exile and final years",
+      "sections": [
+        {
+          "works": [
+            "view-of-lake-geneva"
+          ],
+          "options": {},
+          "layout": "chapter-intro",
+          "kicker": "Section 11",
+          "title": "Exile and final years",
+          "text": [
+            "The political events of the early 1870s fundamentally changed Gustave Courbet’s life. After the fall of the Second Empire and the end of the Franco-Prussian War, he campaigned in Paris for the protection of art and cultural property and took on an important role within the republican arts administration.",
+            "In connection with the Paris Commune, however, he was held responsible for the demolition of the Vendôme Column, although the decision had already been made before he joined. Imprisonment, a fine and social ostracism followed. When further legal and financial burdens threatened, Courbet left France and settled on Lake Geneva in 1873.",
+            "His late work is shaped by the experience of exile, memory and quiet melancholy. Recurring views of the lake or Chillon Castle combine with an increasingly focused observation of light, atmosphere and natural phenomena."
+          ],
+          "id": "exile-and-final-years-1"
+        },
+        {
+          "works": [
+            "chillon-castle"
+          ],
+          "options": {},
+          "layout": "work-focus",
+          "id": "exile-and-final-years-2"
+        },
+        {
+          "works": [],
+          "options": {},
+          "layout": "text",
+          "text": [
+            "The building, which had already been frequently visited and depicted during the Romantic period, held special significance for the artist living in Swiss exile. It could be understood both as a place of refuge and as a symbol of isolation. This ambivalent reading is reinforced by Lord Byron’s famous poem The Prisoner of Chillon, which links the fortress with captivity and the pursuit of freedom."
+          ],
+          "id": "exile-and-final-years-3"
+        }
+      ]
+    },
+    {
+      "id": "closing",
+      "label": "End",
+      "title": "Welcome to the Artist’s Studio",
+      "sections": [
+        {
+          "works": [
+            "the-painter-s-studio"
+          ],
+          "options": {},
+          "layout": "closing",
+          "title": "Welcome to the Artist’s Studio",
+          "text": [
+            "The learning space at the end of the exhibition explores aspects of Gustave Courbet’s art in greater depth.",
+            "A reproduction of the monumental painting of his Paris studio (1855) from the Musée d’Orsay (Allégorie réelle déterminant une phase de sept années de ma vie artistique) addresses themes such as landscape, the nude and artistic self-presentation.",
+            "It also illustrates the artist’s extensive networks. Two painted samples relating to Gustave Courbet, which visitors are invited to touch, offer an insight into his painting techniques and the physical qualities of the paint."
+          ],
+          "id": "closing-1"
+        }
+      ]
+    }
+  ]
+}
