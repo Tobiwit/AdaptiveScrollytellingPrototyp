@@ -1,0 +1,65 @@
+[
+  {
+    "id": "study-in-blue",
+    "title": "Study in Blue",
+    "artist": "Sample Artist",
+    "year": "2024",
+    "institution": "Sample Collection",
+    "image": {
+      "src": "images/study-in-blue.svg",
+      "alt": "Placeholder image: a pale yellow circle above a dark blue band on a blue ground.",
+      "credit": "Generated placeholder"
+    },
+    "text": {
+      "short": ["A short text about the blue study."],
+      "long": [
+        "A longer text about the blue study. In the adaptive version this could switch to the short text.",
+        "It has a second paragraph."
+      ]
+    },
+    "tags": {},
+    "size": "L"
+  },
+  {
+    "id": "tall-figure",
+    "title": "Tall Figure",
+    "artist": "Sample Artist",
+    "year": "2023",
+    "institution": "Sample Collection",
+    "image": {
+      "src": "images/tall-figure.svg",
+      "alt": "Placeholder image: a pink circle on a plum-coloured portrait-format ground.",
+      "credit": "Generated placeholder"
+    },
+    "text": {
+      "short": ["A short text about the tall figure."],
+      "long": [
+        "A longer text about the tall figure. The image stays sticky while this text scrolls.",
+        "Another paragraph, so the text column is taller than the screen.",
+        "And a third one."
+      ]
+    },
+    "tags": {},
+    "size": "S"
+  },
+  {
+    "id": "green-field",
+    "title": "Green Field",
+    "artist": "Another Sample Artist",
+    "year": "2022",
+    "institution": "Sample Collection",
+    "image": {
+      "src": "images/green-field.svg",
+      "alt": "Placeholder image: a cream circle above a dark green band on a green ground.",
+      "credit": "Generated placeholder"
+    },
+    "text": {
+      "short": ["A short text about the green field."],
+      "long": [
+        "A longer text about the green field. When this text reaches the middle of the screen, the sticky image swaps.",
+        "One more paragraph."
+      ]
+    },
+    "tags": {}
+  }
+]

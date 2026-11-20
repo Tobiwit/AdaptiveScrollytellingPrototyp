@@ -1,0 +1,11 @@
+node_modules/
+dist/
+*.log
+.DS_Store
+
+# Images are downloaded for local development only (rights not cleared).
+assets/
+
+# Raw scraper output
+scripts/.snapshot/
+.claude/

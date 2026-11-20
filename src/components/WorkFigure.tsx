@@ -1,0 +1,39 @@
+import type { Work, WorkSize } from '../schema/schema';
+import styles from './WorkFigure.module.css';
+
+interface Props {
+  work: Work;
+  size: WorkSize;
+  /** Load eagerly (above the fold). */
+  priority?: boolean;
+  caption?: boolean;
+  className?: string;
+}
+
+export function WorkFigure({ work, size, priority, caption = true, className }: Props) {
+  return (
+    <figure className={`${styles.figure} ${className ?? ''}`} data-size={size}>
+      <div className={styles.frame}>
+        <img
+          className={styles.img}
+          src={work.image.src}
+          alt={work.image.alt}
+          loading={priority ? 'eager' : 'lazy'}
+          decoding="async"
+        />
+      </div>
+      {caption && <WorkCaption work={work} className={styles.caption} />}
+    </figure>
+  );
+}
+
+export function WorkCaption({ work, className }: { work: Work; className?: string }) {
+  const line = [work.artist, work.year].filter(Boolean).join(', ');
+  return (
+    <figcaption className={`${styles.captionBase} ${className ?? ''}`}>
+      <span className={styles.title}>{work.title}</span>
+      {line && <span>{line}</span>}
+      {work.institution && <span className={styles.muted}>{work.institution}</span>}
+    </figcaption>
+  );
+}

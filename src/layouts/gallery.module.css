@@ -1,0 +1,46 @@
+.gallery {
+  padding: var(--space-5) var(--gutter);
+}
+
+.heading {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: var(--text-xl);
+  margin: 0 auto var(--space-3);
+  max-width: var(--measure);
+}
+
+.intro {
+  max-width: var(--measure);
+  margin: 0 auto var(--space-5);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--space-6) var(--space-5);
+  align-items: end;
+  justify-items: center;
+}
+
+.item {
+  grid-column: span 6;
+  transition: grid-column var(--dur-slow) var(--ease);
+}
+
+.item[data-size='S'] { grid-column: span 4; }
+.item[data-size='M'] { grid-column: span 6; }
+.item[data-size='L'] { grid-column: 2 / span 10; }
+
+/* A lone medium work sits in the middle. */
+.item[data-size='M']:only-child { grid-column: 3 / span 8; }
+.item[data-size='S']:only-child { grid-column: 5 / span 4; }
+
+.item img {
+  max-height: 75vh;
+}
+
+.text {
+  margin-top: var(--space-3);
+  max-width: var(--measure);
+}

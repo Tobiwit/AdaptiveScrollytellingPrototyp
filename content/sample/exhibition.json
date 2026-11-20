@@ -1,0 +1,72 @@
+{
+  "id": "sample",
+  "title": "Sample Exhibition",
+  "subtitle": "A dummy exhibition to prove the content is swappable",
+  "locale": "en",
+  "theme": {
+    "colors": {
+      "bg": "#eef0f2",
+      "text": "#16191d",
+      "muted": "#5d6670",
+      "accent": "#2f5d8a",
+      "rule": "#cfd5dc"
+    }
+  },
+  "credits": ["Placeholder content. All images are generated shapes."],
+  "chapters": [
+    {
+      "id": "welcome",
+      "label": "Intro",
+      "title": "Welcome",
+      "sections": [
+        {
+          "id": "welcome-hero",
+          "layout": "hero",
+          "kicker": "Dummy content",
+          "text": ["This exhibition exists only to show that the app renders whatever lives in a content folder. Nothing here is real museum text."],
+          "works": ["study-in-blue"]
+        }
+      ]
+    },
+    {
+      "id": "room-one",
+      "label": "1",
+      "title": "Room One",
+      "sections": [
+        {
+          "id": "room-one-intro",
+          "layout": "chapter-intro",
+          "kicker": "Room 1",
+          "title": "Shapes and Colour",
+          "text": ["A short introduction to the room. It sits next to a cover image and scrolls past it.", "A second paragraph so there is something to scroll."]
+        },
+        {
+          "id": "room-one-focus",
+          "layout": "work-focus",
+          "options": { "side": "right" },
+          "works": ["tall-figure", "green-field"]
+        },
+        {
+          "id": "room-one-quote",
+          "layout": "text",
+          "options": { "style": "quote" },
+          "text": ["A placeholder quotation, set large."],
+          "attribution": "Nobody in particular"
+        },
+        {
+          "id": "room-one-compare",
+          "layout": "compare",
+          "title": "Side by side",
+          "works": ["study-in-blue", "green-field"],
+          "text": ["Two works next to each other with a shared text underneath."]
+        },
+        {
+          "id": "room-one-end",
+          "layout": "closing",
+          "title": "Thank you",
+          "text": ["The end of the sample exhibition."]
+        }
+      ]
+    }
+  ]
+}
