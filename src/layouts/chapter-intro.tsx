@@ -12,7 +12,7 @@ const Options = z.object({});
 
 function ChapterIntro({ chapter, section, works }: LayoutProps<z.infer<typeof Options>>) {
   return (
-    <div className={styles.intro}>
+    <div className={styles.intro} data-cover={works.length > 0}>
       <header className={styles.header}>
         {section.kicker && <p className="kicker">{section.kicker}</p>}
         <h2 className={styles.title}>{section.title ?? chapter.title}</h2>

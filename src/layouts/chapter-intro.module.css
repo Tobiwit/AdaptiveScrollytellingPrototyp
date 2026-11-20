@@ -11,6 +11,16 @@
   border-top: 1px solid var(--color-rule);
 }
 
+/* Without a cover, heading and text sit side by side. */
+.intro[data-cover='false'] {
+  grid-template-areas: 'header text';
+  grid-template-rows: auto;
+}
+
+.intro[data-cover='false'] .text {
+  padding-top: var(--space-5);
+}
+
 .header {
   grid-area: header;
 }
