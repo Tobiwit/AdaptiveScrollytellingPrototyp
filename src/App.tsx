@@ -6,10 +6,15 @@ import { layouts } from './layouts/registry';
 import { ProgressNav } from './components/ProgressNav';
 import { SignalsProvider } from './signals/SignalsContext';
 import { DebugOverlay } from './debug/DebugOverlay';
+import { InsightsProvider } from './insights/InsightsContext';
 
 export function App({ exhibition, works }: LoadedExhibition) {
   // Adaptation seam: swap StaticPolicy for an AdaptivePolicy here.
   const policy = useMemo(() => new StaticPolicy(works, exhibition.defaults), [works, exhibition]);
+  const chapterTitles = useMemo(
+    () => Object.fromEntries(exhibition.chapters.map((c) => [c.id, c.title])),
+    [exhibition],
+  );
 
   useEffect(() => {
     document.title = exhibition.title;
@@ -53,7 +58,9 @@ export function App({ exhibition, works }: LoadedExhibition) {
             </div>
           ))}
         </main>
-        <DebugOverlay />
+        <InsightsProvider chapterTitles={chapterTitles}>
+          <DebugOverlay />
+        </InsightsProvider>
       </SignalsProvider>
     </PresentationProvider>
   );

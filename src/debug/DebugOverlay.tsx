@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react';
 import { useSignalSnapshot, useSignalTracker } from '../signals/SignalsContext';
 import { signalConfig } from '../signals/config';
 import type { SignalEvent, UnitSnapshot } from '../signals/types';
+import { useInsightEngine, useInsightState } from '../insights/InsightsContext';
+import type { UnitVerdict } from '../insights/types';
+import { InsightToasts } from './InsightToasts';
 import styles from './DebugOverlay.module.css';
 
 const allowed = import.meta.env.DEV || new URLSearchParams(location.search).has('debug');
@@ -12,6 +15,8 @@ const allowed = import.meta.env.DEV || new URLSearchParams(location.search).has(
  */
 export function DebugOverlay() {
   const [open, setOpen] = useState(() => new URLSearchParams(location.search).has('debug'));
+  const [minimized, setMinimized] = useStoredFlag('signals-debug-minimized');
+  const [popups, setPopups] = useStoredFlag('signals-debug-popups', true);
 
   useEffect(() => {
     if (!allowed) return;
@@ -23,12 +28,33 @@ export function DebugOverlay() {
   }, []);
 
   if (!allowed || !open) return null;
-  return <Panel onClose={() => setOpen(false)} />;
+  return (
+    <>
+      {popups && <InsightToasts />}
+      <Panel
+        onClose={() => setOpen(false)}
+        minimized={minimized}
+        onMinimize={() => setMinimized(!minimized)}
+        popups={popups}
+        onPopups={setPopups}
+      />
+    </>
+  );
 }
 
-function Panel({ onClose }: { onClose: () => void }) {
+interface PanelProps {
+  onClose: () => void;
+  minimized: boolean;
+  onMinimize: () => void;
+  popups: boolean;
+  onPopups: (on: boolean) => void;
+}
+
+function Panel({ onClose, minimized, onMinimize, popups, onPopups }: PanelProps) {
   const snap = useSignalSnapshot();
   const tracker = useSignalTracker();
+  const engine = useInsightEngine();
+  const insight = useInsightState();
   const [seenOnly, setSeenOnly] = useState(true);
   const [copied, setCopied] = useState(false);
   const { session: s, focus } = snap;
@@ -41,13 +67,40 @@ function Panel({ onClose }: { onClose: () => void }) {
   }, [s.focusUnitId, tracker]);
 
   const copy = async () => {
-    await navigator.clipboard.writeText(JSON.stringify(tracker.getSnapshot(), null, 2));
+    const data = { signals: tracker.getSnapshot(), insights: engine.getState() };
+    await navigator.clipboard.writeText(JSON.stringify(data, null, 2));
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   };
 
   const units = seenOnly ? snap.units.filter((u) => u.visits > 0 || u.bandMs > 0) : snap.units;
   const state = !s.visible ? 'hidden' : s.idle ? 'idle' : 'active';
+
+  if (minimized) {
+    return (
+      <aside className={`${styles.panel} ${styles.mini}`} data-signals-ignore aria-label="Signal debug overlay">
+        <header className={styles.head}>
+          <strong>Signals</strong>
+          <span className={styles.state} data-state={state}>
+            {state}
+          </span>
+          <span className={styles.miniFocus}>{focus ? focus.label : '–'}</span>
+          <button onClick={onMinimize} aria-label="Expand" title="Expand">
+            ▢
+          </button>
+          <button onClick={onClose} aria-label="Close">
+            ×
+          </button>
+        </header>
+      </aside>
+    );
+  }
+
+  const p = insight.profile;
+  const verdictCounts = Object.values(insight.verdicts).reduce<Record<string, number>>((acc, v) => {
+    acc[v.engagement] = (acc[v.engagement] ?? 0) + 1;
+    return acc;
+  }, {});
 
   return (
     <>
@@ -62,6 +115,9 @@ function Panel({ onClose }: { onClose: () => void }) {
           </span>
           <span className={styles.grow} />
           <button onClick={copy}>{copied ? 'copied' : 'copy JSON'}</button>
+          <button onClick={onMinimize} aria-label="Minimise" title="Minimise">
+            –
+          </button>
           <button onClick={onClose} aria-label="Close">
             ×
           </button>
@@ -96,6 +152,31 @@ function Panel({ onClose }: { onClose: () => void }) {
           <Row k="reading pace" v={s.readingPaceWpm ? `${Math.round(s.readingPaceWpm)} wpm (n=${s.paceSamples}, default ${signalConfig.readingWpm})` : `– (default ${signalConfig.readingWpm} wpm)`} />
         </Block>
 
+        <Block
+          title="Interpretation"
+          extra={
+            <label className={styles.toggle}>
+              <input type="checkbox" checked={popups} onChange={(e) => onPopups(e.target.checked)} /> pop-ups
+            </label>
+          }
+        >
+          <Row
+            k="reading style"
+            v={p.readingStyle ? `${p.readingStyle} (${pct(p.styleConfidence)}, ${p.styleBasis} texts)` : '– (needs 4 texts)'}
+          />
+          <Row k="scroll tempo" v={p.scrollTempo} warn={p.scrollTempo !== 'normal'} />
+          <Row k="pointer as gaze proxy" v={p.pointerFollowsReading === null ? 'unknown yet' : p.pointerFollowsReading ? 'usable' : 'not usable'} />
+          <Row
+            k="verdicts"
+            v={
+              Object.entries(verdictCounts)
+                .map(([k, n]) => `${k} ${n}`)
+                .join(' · ') || '–'
+            }
+          />
+          <Row k="insights drawn" v={String(insight.insights.length)} />
+        </Block>
+
         <Block title="Focused unit">{focus ? <Focus u={focus} /> : <p className={styles.muted}>nothing in focus</p>}</Block>
 
         <Block
@@ -116,6 +197,7 @@ function Panel({ onClose }: { onClose: () => void }) {
                 <th title="text progress">read</th>
                 <th title="scroll speed vs baseline">spd</th>
                 <th title="pointer time on image">img</th>
+                <th title="verdict (confidence)">verdict</th>
               </tr>
             </thead>
             <tbody>
@@ -138,6 +220,9 @@ function Panel({ onClose }: { onClose: () => void }) {
                   <td>{u.words ? pct(u.textProgress) : '–'}</td>
                   <td>{u.relSpeed !== null ? fmt(u.relSpeed, 1) + '×' : '–'}</td>
                   <td>{u.hoverMs.image ? sec(u.hoverMs.image, 1) : '–'}</td>
+                  <td>
+                    <Verdict v={insight.verdicts[u.unitId]} />
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -180,6 +265,36 @@ function Focus({ u }: { u: UnitSnapshot }) {
 }
 
 // ---- bits ------------------------------------------------------------------
+
+function Verdict({ v }: { v?: UnitVerdict }) {
+  if (!v) return <span className={styles.muted}>…</span>;
+  return (
+    <span title={v.evidence.join(' · ')}>
+      {v.engagement} <span className={styles.muted}>{Math.round(v.confidence * 100)}</span>
+    </span>
+  );
+}
+
+/** A boolean kept in localStorage (per browser), with a fallback if storage is blocked. */
+function useStoredFlag(key: string, initial = false): [boolean, (v: boolean) => void] {
+  const [value, setValue] = useState(() => {
+    try {
+      const raw = localStorage.getItem(key);
+      return raw === null ? initial : raw === '1';
+    } catch {
+      return initial;
+    }
+  });
+  const set = (v: boolean) => {
+    setValue(v);
+    try {
+      localStorage.setItem(key, v ? '1' : '0');
+    } catch {
+      /* storage unavailable */
+    }
+  };
+  return [value, set];
+}
 
 function Block({ title, extra, children }: { title: string; extra?: React.ReactNode; children: React.ReactNode }) {
   return (

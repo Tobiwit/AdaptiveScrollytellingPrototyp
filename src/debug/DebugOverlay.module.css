@@ -205,3 +205,23 @@
   outline: 2px dashed rgba(200, 60, 60, 0.7);
   outline-offset: 6px;
 }
+
+/* Minimised: just the header bar */
+.mini {
+  bottom: auto;
+  width: 320px;
+  overflow: hidden;
+}
+
+.mini .head {
+  border-bottom: 0;
+}
+
+.miniFocus {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #9aa0a8;
+}
