@@ -16,6 +16,7 @@ export function WorkFigure({ work, size, priority, caption = true, className }: 
       <div className={styles.frame}>
         <img
           className={styles.img}
+          data-part="image"
           src={work.image.src}
           alt={work.image.alt}
           loading={priority ? 'eager' : 'lazy'}
@@ -32,7 +33,7 @@ export function WorkFigure({ work, size, priority, caption = true, className }: 
 export function WorkCaption({ work, className }: { work: Work; className?: string }) {
   const line = [work.artist, work.year].filter(Boolean).join(', ');
   return (
-    <figcaption className={`${styles.captionBase} ${className ?? ''}`}>
+    <figcaption className={`${styles.captionBase} ${className ?? ''}`} data-part="caption">
       <span className={styles.title}>{work.title}</span>
       {line && <span>{line}</span>}
       {work.institution && <span className={styles.muted}>{work.institution}</span>}

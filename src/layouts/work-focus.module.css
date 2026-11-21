@@ -38,6 +38,11 @@
   opacity: 1;
 }
 
+/* Hidden images stay stacked in the same cell; they must not catch the pointer. */
+.stageItem[data-active='false'] {
+  pointer-events: none;
+}
+
 .steps {
   display: flex;
   flex-direction: column;

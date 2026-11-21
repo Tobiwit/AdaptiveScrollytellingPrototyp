@@ -1,10 +1,3 @@
-export interface AttentionEvent {
-  workId: string;
-  sectionId: string;
-  type: 'enter' | 'exit';
-  timestamp: number;
-}
-
 export interface EventBus<T> {
   emit(event: T): void;
   subscribe(listener: (event: T) => void): () => void;
@@ -22,14 +15,4 @@ export function createEventBus<T>(): EventBus<T> {
       return () => listeners.delete(listener);
     },
   };
-}
-
-/**
- * The single attention bus for the session.
- * Adaptation seam: an AdaptivePolicy subscribes here to score works.
- */
-export const attentionBus = createEventBus<AttentionEvent>();
-
-if (import.meta.env.DEV) {
-  attentionBus.subscribe((e) => console.debug(`[attention] ${e.type} ${e.workId} (${e.sectionId})`));
 }

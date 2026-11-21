@@ -1,0 +1,250 @@
+import { useEffect, useState } from 'react';
+import { useSignalSnapshot, useSignalTracker } from '../signals/SignalsContext';
+import { signalConfig } from '../signals/config';
+import type { SignalEvent, UnitSnapshot } from '../signals/types';
+import styles from './DebugOverlay.module.css';
+
+const allowed = import.meta.env.DEV || new URLSearchParams(location.search).has('debug');
+
+/**
+ * Temporary developer overlay that shows every tracked signal live.
+ * Available in dev, or with ?debug in the URL. Shift+D toggles it.
+ */
+export function DebugOverlay() {
+  const [open, setOpen] = useState(() => new URLSearchParams(location.search).has('debug'));
+
+  useEffect(() => {
+    if (!allowed) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.shiftKey && e.key.toLowerCase() === 'd') setOpen((o) => !o);
+    };
+    addEventListener('keydown', onKey);
+    return () => removeEventListener('keydown', onKey);
+  }, []);
+
+  if (!allowed || !open) return null;
+  return <Panel onClose={() => setOpen(false)} />;
+}
+
+function Panel({ onClose }: { onClose: () => void }) {
+  const snap = useSignalSnapshot();
+  const tracker = useSignalTracker();
+  const [seenOnly, setSeenOnly] = useState(true);
+  const [copied, setCopied] = useState(false);
+  const { session: s, focus } = snap;
+
+  // Outline the focused unit on the page.
+  useEffect(() => {
+    const el = s.focusUnitId ? tracker.getElement(s.focusUnitId) : null;
+    el?.setAttribute('data-debug-focus', '');
+    return () => el?.removeAttribute('data-debug-focus');
+  }, [s.focusUnitId, tracker]);
+
+  const copy = async () => {
+    await navigator.clipboard.writeText(JSON.stringify(tracker.getSnapshot(), null, 2));
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+
+  const units = seenOnly ? snap.units.filter((u) => u.visits > 0 || u.bandMs > 0) : snap.units;
+  const state = !s.visible ? 'hidden' : s.idle ? 'idle' : 'active';
+
+  return (
+    <>
+      <div className={styles.band} aria-hidden="true" style={{ top: `${signalConfig.band[0] * 100}%`, bottom: `${(1 - signalConfig.band[1]) * 100}%` }} />
+      <div className={styles.line} aria-hidden="true" style={{ top: `${signalConfig.readingLine * 100}%` }} />
+
+      <aside className={styles.panel} data-signals-ignore aria-label="Signal debug overlay">
+        <header className={styles.head}>
+          <strong>Signals</strong>
+          <span className={styles.state} data-state={state}>
+            {state}
+          </span>
+          <span className={styles.grow} />
+          <button onClick={copy}>{copied ? 'copied' : 'copy JSON'}</button>
+          <button onClick={onClose} aria-label="Close">
+            ×
+          </button>
+        </header>
+
+        <Block title="Session">
+          <Row k="elapsed" v={clock(s.elapsedMs)} />
+          <Row k="active / idle / hidden" v={`${clock(s.activeMs)} / ${clock(s.idleMs)} / ${clock(s.hiddenMs)}`} />
+          <Row k="tab · window" v={`${s.visible ? 'visible' : 'hidden'} · ${s.windowFocused ? 'focused' : 'not focused'}`} />
+          <Row
+            k="since input"
+            v={`${sec(s.msSinceActivity)} (idle after ${sec(s.idleThresholdMs)})`}
+            warn={s.msSinceActivity > s.idleThresholdMs * 0.7}
+          />
+        </Block>
+
+        <Block title="Scroll">
+          <Row k="velocity" v={`${fmt(s.scroll.velocity)} vh/s ${s.scroll.velocity < -0.02 ? '↑' : s.scroll.velocity > 0.02 ? '↓' : '·'}${s.scroll.navigating ? ' (nav jump)' : ''}`} />
+          <Row k="baseline (moving)" v={s.scroll.baseline !== null ? `${fmt(s.scroll.baseline)} ± ${fmt(s.scroll.baselineStd)} vh/s` : 'collecting…'} />
+          <Row k="now vs baseline" v={rel(s.scroll.relSpeed)} />
+          <Row k="last ~3 s vs baseline" v={rel(s.scroll.recentRelSpeed)} warn={(s.scroll.recentRelSpeed ?? 1) > 1.8 || (s.scroll.recentRelSpeed ?? 1) < 0.5} />
+          <Row k="scroll-backs" v={`${s.scroll.backscrolls} (${fmt(s.scroll.backscrollVh)} vh)`} />
+          <Row k="distance · nav jumps" v={`${fmt(s.scroll.distanceVh, 1)} vh · ${s.navJumps}`} />
+        </Block>
+
+        <Block title="Pointer & reading">
+          <Row k="pointer" v={`${s.pointer.type ?? '–'} · ${s.pointer.inside ? (s.pointer.engaged ? 'moving' : 'resting') : 'outside'}`} />
+          <Row k="over" v={s.pointer.unitId ? `${labelOf(snap.units, s.pointer.unitId)} [${s.pointer.part}]` : '–'} />
+          <Row k="pointer follows reading" v={pct(s.pointer.onFocusShare)} />
+          <Row k="focus by" v={s.focusUnitId && s.focusUnitId !== s.bandFocusUnitId ? 'pointer' : 'reading band'} />
+          <Row k="clicks" v={String(s.clicks)} />
+          <Row k="reading pace" v={s.readingPaceWpm ? `${Math.round(s.readingPaceWpm)} wpm (n=${s.paceSamples}, default ${signalConfig.readingWpm})` : `– (default ${signalConfig.readingWpm} wpm)`} />
+        </Block>
+
+        <Block title="Focused unit">{focus ? <Focus u={focus} /> : <p className={styles.muted}>nothing in focus</p>}</Block>
+
+        <Block
+          title={`Units (${units.length}/${snap.units.length})`}
+          extra={
+            <label className={styles.toggle}>
+              <input type="checkbox" checked={seenOnly} onChange={(e) => setSeenOnly(e.target.checked)} /> seen only
+            </label>
+          }
+        >
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>unit</th>
+                <th title="dwell / expected">dwell</th>
+                <th title="dwell ÷ expected">ratio</th>
+                <th title="visits · returns via scroll-back">v·r</th>
+                <th title="text progress">read</th>
+                <th title="scroll speed vs baseline">spd</th>
+                <th title="pointer time on image">img</th>
+              </tr>
+            </thead>
+            <tbody>
+              {units.map((u) => (
+                <tr key={u.unitId} data-focus={u.unitId === s.focusUnitId || undefined}>
+                  <td className={styles.label} title={u.unitId}>
+                    <span className={styles.kind}>{u.kind === 'work' ? 'W' : 'T'}</span>
+                    {u.label}
+                  </td>
+                  <td>
+                    {sec(u.dwellMs, 0)}/{sec(u.expectedMs, 0)}
+                  </td>
+                  <td>
+                    <Ratio r={u.readingRatio} />
+                  </td>
+                  <td>
+                    {u.visits}·{u.returns}
+                    {u.skips ? ' skip' : ''}
+                  </td>
+                  <td>{u.words ? pct(u.textProgress) : '–'}</td>
+                  <td>{u.relSpeed !== null ? fmt(u.relSpeed, 1) + '×' : '–'}</td>
+                  <td>{u.hoverMs.image ? sec(u.hoverMs.image, 1) : '–'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Block>
+
+        <Block title="Events">
+          <ol className={styles.events}>
+            {[...snap.events].reverse().map((e, i) => (
+              <li key={`${e.t}-${i}`}>
+                <span className={styles.muted}>{clock(e.t)}</span> {describe(e, snap.units)}
+              </li>
+            ))}
+          </ol>
+        </Block>
+      </aside>
+    </>
+  );
+}
+
+function Focus({ u }: { u: UnitSnapshot }) {
+  return (
+    <>
+      <p className={styles.focusLabel}>
+        <span className={styles.kind}>{u.kind === 'work' ? 'W' : 'T'}</span>
+        {u.label} <span className={styles.muted}>· {u.sectionId}</span>
+      </p>
+      <Row k="dwell / expected" v={`${sec(u.dwellMs)} / ${sec(u.expectedMs)}${u.expectedPersonalMs ? ` (your pace ${sec(u.expectedPersonalMs)})` : ''}`} />
+      <Row k="ratio" v={<Ratio r={u.readingRatio} wide />} />
+      <Row k="this visit" v={sec(u.currentVisitMs)} />
+      <Row k="words · image" v={`${u.words} · ${u.hasImage ? (u.size ?? 'M') : 'no'}`} />
+      <Row k="visits · returns · left back" v={`${u.visits} · ${u.returns} · ${u.leftBackward}`} />
+      <Row k="text read" v={u.words ? pct(u.textProgress) : '–'} />
+      <Row k="speed vs baseline" v={u.relSpeed !== null ? `${fmt(u.relSpeed, 2)}× · moving ${pct(u.movingShare)}` : '–'} />
+      <Row k="pointer img / txt / cap" v={`${sec(u.hoverMs.image)} / ${sec(u.hoverMs.text)} / ${sec(u.hoverMs.caption)}`} />
+      <Row k="clicks img / txt / other" v={`${u.clicks.image} / ${u.clicks.text} / ${u.clicks.caption + u.clicks.other}`} />
+      <Row k="idle starts" v={String(u.idleStarts)} />
+    </>
+  );
+}
+
+// ---- bits ------------------------------------------------------------------
+
+function Block({ title, extra, children }: { title: string; extra?: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <section className={styles.block}>
+      <h4>
+        {title}
+        {extra}
+      </h4>
+      {children}
+    </section>
+  );
+}
+
+function Row({ k, v, warn }: { k: string; v: React.ReactNode; warn?: boolean }) {
+  return (
+    <div className={styles.row} data-warn={warn || undefined}>
+      <span className={styles.k}>{k}</span>
+      <span>{v}</span>
+    </div>
+  );
+}
+
+function Ratio({ r, wide }: { r: number; wide?: boolean }) {
+  const tone = r === 0 ? 'none' : r < 0.3 ? 'low' : r <= 1.3 ? 'ok' : 'high';
+  return (
+    <span className={styles.ratio} data-wide={wide || undefined}>
+      <span className={styles.bar} data-tone={tone} style={{ width: `${Math.min(r, 2) * 50}%` }} />
+      <span className={styles.ratioText}>{fmt(r, 2)}</span>
+    </span>
+  );
+}
+
+const fmt = (n: number | null | undefined, d = 2) => (n === null || n === undefined ? '–' : n.toFixed(d));
+const sec = (ms: number, d = 1) => `${(ms / 1000).toFixed(d)}s`;
+const pct = (x: number | null) => (x === null ? '–' : `${Math.round(x * 100)}%`);
+const rel = (x: number | null) => (x === null ? '–' : `${x.toFixed(2)}×`);
+const clock = (ms: number) => {
+  const total = Math.floor(ms / 1000);
+  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
+};
+const labelOf = (units: UnitSnapshot[], id: string | null) => (id ? (units.find((u) => u.unitId === id)?.label ?? id) : '–');
+
+function describe(e: SignalEvent, units: UnitSnapshot[]): string {
+  switch (e.type) {
+    case 'focus-enter':
+      return `→ ${labelOf(units, e.unitId)}`;
+    case 'focus-exit':
+      return `← ${labelOf(units, e.unitId)} (${sec(e.visitMs)})`;
+    case 'skip':
+      return `skipped ${labelOf(units, e.unitId)} (${sec(e.visitMs)} of ${sec(e.expectedMs)})`;
+    case 'backscroll':
+      return `scroll-back ${e.distanceVh} vh → ${labelOf(units, e.toUnitId)}`;
+    case 'idle-start':
+      return `idle (no input for ${sec(e.afterMs)})`;
+    case 'idle-end':
+      return `back after ${sec(e.idleMs)}`;
+    case 'visibility':
+      return e.visible ? 'tab visible' : 'tab hidden';
+    case 'window-focus':
+      return e.focused ? 'window focused' : 'window lost focus';
+    case 'hover':
+      return `pointer on ${e.part} of ${labelOf(units, e.unitId)} (${sec(e.ms)})`;
+    case 'click':
+      return `click ${e.target}${e.unitId ? ` on ${e.part} of ${labelOf(units, e.unitId)}` : ''}`;
+    case 'nav-jump':
+      return `jump to ${e.href}`;
+  }
+}

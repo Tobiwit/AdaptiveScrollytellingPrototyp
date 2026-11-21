@@ -4,6 +4,8 @@ import { StaticPolicy } from './presentation/policy';
 import { PresentationProvider } from './presentation/PresentationContext';
 import { layouts } from './layouts/registry';
 import { ProgressNav } from './components/ProgressNav';
+import { SignalsProvider } from './signals/SignalsContext';
+import { DebugOverlay } from './debug/DebugOverlay';
 
 export function App({ exhibition, works }: LoadedExhibition) {
   // Adaptation seam: swap StaticPolicy for an AdaptivePolicy here.
@@ -19,37 +21,40 @@ export function App({ exhibition, works }: LoadedExhibition) {
 
   return (
     <PresentationProvider policy={policy}>
-      <a className="skip-link" href="#main">
-        Skip to content
-      </a>
-      <ProgressNav chapters={exhibition.chapters} />
-      <main id="main">
-        {exhibition.chapters.map((chapter) => (
-          <div key={chapter.id} id={chapter.id} className="chapter" data-chapter={chapter.id}>
-            {chapter.sections.map((section) => {
-              const layout = layouts[section.layout];
-              const Component = layout.component;
-              return (
-                <section
-                  key={section.id}
-                  id={section.id}
-                  className="section"
-                  data-layout={section.layout}
-                  aria-label={section.title ?? chapter.title}
-                >
-                  <Component
-                    exhibition={exhibition}
-                    chapter={chapter}
-                    section={section}
-                    works={section.works.map((id) => works.get(id)!)}
-                    options={layout.options.parse(section.options)}
-                  />
-                </section>
-              );
-            })}
-          </div>
-        ))}
-      </main>
+      <SignalsProvider>
+        <a className="skip-link" href="#main">
+          Skip to content
+        </a>
+        <ProgressNav chapters={exhibition.chapters} />
+        <main id="main">
+          {exhibition.chapters.map((chapter) => (
+            <div key={chapter.id} id={chapter.id} className="chapter" data-chapter={chapter.id}>
+              {chapter.sections.map((section) => {
+                const layout = layouts[section.layout];
+                const Component = layout.component;
+                return (
+                  <section
+                    key={section.id}
+                    id={section.id}
+                    className="section"
+                    data-layout={section.layout}
+                    aria-label={section.title ?? chapter.title}
+                  >
+                    <Component
+                      exhibition={exhibition}
+                      chapter={chapter}
+                      section={section}
+                      works={section.works.map((id) => works.get(id)!)}
+                      options={layout.options.parse(section.options)}
+                    />
+                  </section>
+                );
+              })}
+            </div>
+          ))}
+        </main>
+        <DebugOverlay />
+      </SignalsProvider>
     </PresentationProvider>
   );
 }

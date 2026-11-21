@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { defineLayout, type LayoutProps } from './types';
-import { Paragraphs } from '../components/Text';
+import { TrackedSectionText } from '../components/Tracked';
 import { Reveal } from '../components/Reveal';
 import styles from './text.module.css';
 
@@ -8,13 +8,13 @@ const Options = z.object({
   style: z.enum(['plain', 'quote']).default('plain'),
 });
 
-function TextBlock({ section, options }: LayoutProps<z.infer<typeof Options>>) {
+function TextBlock({ chapter, section, options }: LayoutProps<z.infer<typeof Options>>) {
   if (options.style === 'quote') {
     return (
       <Reveal className={styles.wrap}>
         <figure className={styles.quote}>
           <blockquote>
-            <Paragraphs text={section.text} />
+            <TrackedSectionText chapter={chapter} section={section} />
           </blockquote>
           {section.attribution && <figcaption>{section.attribution}</figcaption>}
         </figure>
@@ -23,8 +23,12 @@ function TextBlock({ section, options }: LayoutProps<z.infer<typeof Options>>) {
   }
   return (
     <Reveal className={styles.wrap}>
-      {section.title && <h3 className={styles.heading}>{section.title}</h3>}
-      <Paragraphs text={section.text} className="prose" />
+      <TrackedSectionText
+        chapter={chapter}
+        section={section}
+        textClassName="prose"
+        before={section.title && <h3 className={styles.heading}>{section.title}</h3>}
+      />
     </Reveal>
   );
 }
