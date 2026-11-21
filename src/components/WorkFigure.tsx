@@ -19,6 +19,8 @@ export function WorkFigure({ work, size, priority, caption = true, className }: 
           src={work.image.src}
           alt={work.image.alt}
           loading={priority ? 'eager' : 'lazy'}
+          // Google's image servers throttle requests that carry a foreign Referer.
+          referrerPolicy="no-referrer"
           decoding="async"
         />
       </div>

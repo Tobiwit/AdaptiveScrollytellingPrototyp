@@ -1,9 +1,9 @@
 /**
  * Turns a Google Arts & Culture snapshot (from extract-gac.ts) into an
- * exhibition content folder and downloads the images into assets/.
+ * exhibition content folder.
  *
- *   npm run build-content            # writes content/courbetorial/, downloads images
- *   npm run build-content -- --no-images
+ *   npm run build-content                   # images load from Google's servers
+ *   npm run build-content -- --local-images # download into assets/, serve from /media/
  *
  * The slide → layout mapping is rule based:
  *   section title slide      → new chapter + `chapter-intro` (first one: `hero`)
@@ -67,7 +67,7 @@ interface Draft extends Work {
 
 // ---- Conversion -------------------------------------------------------------
 
-function convert(stories: RawStory[], assets: RawAsset[]) {
+function convert(stories: RawStory[], assets: RawAsset[], localImages: boolean) {
   const assetByHref = new Map(assets.map((a) => [a.href, a]));
   const works = new Map<string, Draft>(); // key → work
   const usedIds = new Set<string>();
@@ -280,7 +280,8 @@ function convert(stories: RawStory[], assets: RawAsset[]) {
 
   // Images and alt text.
   for (const w of works.values()) {
-    w.image.src = `/media/${CONFIG.id}/${w.id}.jpg`;
+    if (!w.imageUrl) warnings.push(`no image URL for ${w.id}`);
+    w.image.src = localImages ? `/media/${CONFIG.id}/${w.id}.jpg` : remoteImageUrl(w.imageUrl);
     w.image.alt = `${w.title}${w.artist && !w.artist.startsWith('TODO') ? `, ${w.artist}` : ''}${w.year ? `, ${w.year}` : ''}`;
     if (!w.image.credit) w.image.credit = w.institution;
   }
@@ -299,6 +300,12 @@ function convert(stories: RawStory[], assets: RawAsset[]) {
   return { exhibition, works: [...works.values()], warnings };
 }
 
+/** Google image URL at the configured size, e.g. https://lh3.googleusercontent.com/ci/…=s1800 */
+function remoteImageUrl(imageUrl: string): string {
+  if (!imageUrl) return 'TODO: image';
+  return (imageUrl.startsWith('//') ? 'https:' + imageUrl : imageUrl).replace(/=[^/]*$/, '') + CONFIG.imageSize;
+}
+
 async function download(works: Draft[], force: boolean) {
   const dir = path.resolve('assets', CONFIG.id);
   fs.mkdirSync(dir, { recursive: true });
@@ -309,8 +316,7 @@ async function download(works: Draft[], force: boolean) {
       console.warn(`no image URL for ${w.id}`);
       continue;
     }
-    const url = (w.imageUrl.startsWith('//') ? 'https:' + w.imageUrl : w.imageUrl).replace(/=[^/]*$/, '') + CONFIG.imageSize;
-    const res = await fetch(url);
+    const res = await fetch(remoteImageUrl(w.imageUrl));
     if (!res.ok) {
       console.warn(`download failed for ${w.id}: ${res.status}`);
       continue;
@@ -323,7 +329,8 @@ async function download(works: Draft[], force: boolean) {
 async function main() {
   const args = process.argv.slice(2);
   const snapshot = JSON.parse(fs.readFileSync(CONFIG.snapshot, 'utf8'));
-  const { exhibition, works, warnings } = convert(snapshot.stories, snapshot.assets);
+  const localImages = args.includes('--local-images');
+  const { exhibition, works, warnings } = convert(snapshot.stories, snapshot.assets, localImages);
 
   const outDir = path.resolve('content', CONFIG.id);
   fs.mkdirSync(outDir, { recursive: true });
@@ -335,7 +342,7 @@ async function main() {
   console.log(`${exhibition.chapters.length} chapters, ${works.length} works → ${outDir}`);
   for (const w of warnings) console.warn('warning:', w);
 
-  if (!args.includes('--no-images')) await download(works, args.includes('--force'));
+  if (localImages) await download(works, args.includes('--force'));
 }
 
 main();
