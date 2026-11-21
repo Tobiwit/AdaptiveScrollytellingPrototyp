@@ -47,7 +47,10 @@ export const signalConfig = {
   /** Reading pace is only estimated from units with enough text that were read to the end. */
   paceMinWords: 20,
   paceMinProgress: 0.8,
-  paceRangeWpm: [50, 800] as const,
+  /** Above ~450 wpm people skim rather than read, so those visits don't count. */
+  paceRangeWpm: [80, 450] as const,
+  /** Visits scrolled faster than this × the baseline don't count either. */
+  paceMaxRelSpeed: 1.5,
 
   eventLogSize: 80,
 };

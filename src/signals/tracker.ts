@@ -443,7 +443,8 @@ export class SignalTracker {
     }
 
     // Reading pace from units that were read to the end.
-    if (!u.paceSampled && words >= C.paceMinWords && u.textProgress >= C.paceMinProgress) {
+    const relSpeed = u.speedN && this.scroll.n >= 4 ? u.speedSum / u.speedN / this.scroll.mean : 1;
+    if (!u.paceSampled && words >= C.paceMinWords && u.textProgress >= C.paceMinProgress && relSpeed <= C.paceMaxRelSpeed) {
       const readingMs = u.dwellMs - (u.meta.hasImage ? C.imageMs[u.meta.size ?? 'M'] : 0);
       const wpm = readingMs > 0 ? words / (readingMs / 60_000) : Infinity;
       if (wpm >= C.paceRangeWpm[0] && wpm <= C.paceRangeWpm[1]) {
