@@ -5,6 +5,8 @@ import type { SignalEvent, UnitSnapshot } from '../signals/types';
 import { useInsightEngine, useInsightState } from '../insights/InsightsContext';
 import type { UnitVerdict } from '../insights/types';
 import { InsightToasts } from './InsightToasts';
+import { StatusCenter } from './StatusCenter';
+import { useStoredFlag } from './useStoredFlag';
 import styles from './DebugOverlay.module.css';
 
 const allowed = import.meta.env.DEV || new URLSearchParams(location.search).has('debug');
@@ -30,7 +32,10 @@ export function DebugOverlay() {
   if (!allowed || !open) return null;
   return (
     <>
-      {popups && <InsightToasts />}
+      <div className={styles.leftColumn} data-signals-ignore>
+        <StatusCenter />
+        {popups && <InsightToasts />}
+      </div>
       <Panel
         onClose={() => setOpen(false)}
         minimized={minimized}
@@ -273,27 +278,6 @@ function Verdict({ v }: { v?: UnitVerdict }) {
       {v.engagement} <span className={styles.muted}>{Math.round(v.confidence * 100)}</span>
     </span>
   );
-}
-
-/** A boolean kept in localStorage (per browser), with a fallback if storage is blocked. */
-function useStoredFlag(key: string, initial = false): [boolean, (v: boolean) => void] {
-  const [value, setValue] = useState(() => {
-    try {
-      const raw = localStorage.getItem(key);
-      return raw === null ? initial : raw === '1';
-    } catch {
-      return initial;
-    }
-  });
-  const set = (v: boolean) => {
-    setValue(v);
-    try {
-      localStorage.setItem(key, v ? '1' : '0');
-    } catch {
-      /* storage unavailable */
-    }
-  };
-  return [value, set];
 }
 
 function Block({ title, extra, children }: { title: string; extra?: React.ReactNode; children: React.ReactNode }) {

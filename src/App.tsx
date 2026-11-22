@@ -7,10 +7,12 @@ import { ProgressNav } from './components/ProgressNav';
 import { SignalsProvider } from './signals/SignalsContext';
 import { DebugOverlay } from './debug/DebugOverlay';
 import { InsightsProvider } from './insights/InsightsContext';
+import { ConclusionsProvider } from './conclusions/ConclusionsContext';
 
 export function App({ exhibition, works }: LoadedExhibition) {
   // Adaptation seam: swap StaticPolicy for an AdaptivePolicy here.
   const policy = useMemo(() => new StaticPolicy(works, exhibition.defaults), [works, exhibition]);
+  const hasTags = useMemo(() => [...works.values()].some((w) => Object.keys(w.tags).length > 0), [works]);
   const chapterTitles = useMemo(
     () => Object.fromEntries(exhibition.chapters.map((c) => [c.id, c.title])),
     [exhibition],
@@ -59,7 +61,9 @@ export function App({ exhibition, works }: LoadedExhibition) {
           ))}
         </main>
         <InsightsProvider chapterTitles={chapterTitles}>
-          <DebugOverlay />
+          <ConclusionsProvider hasTags={hasTags}>
+            <DebugOverlay />
+          </ConclusionsProvider>
         </InsightsProvider>
       </SignalsProvider>
     </PresentationProvider>

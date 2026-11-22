@@ -1,0 +1,102 @@
+.card {
+  pointer-events: auto;
+  background: rgba(18, 20, 24, 0.94);
+  color: #e6e6e6;
+  border: 1px solid #3a3f48;
+  border-radius: 4px;
+  font: 11px/1.4 ui-monospace, 'Cascadia Mono', Consolas, monospace;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  border-bottom: 1px solid #2a2d33;
+}
+
+.head button {
+  font: inherit;
+  color: inherit;
+  background: #2c3038;
+  border: 1px solid #444;
+  border-radius: 3px;
+  padding: 0 6px;
+  cursor: pointer;
+}
+
+.grow {
+  flex: 1;
+}
+
+.muted {
+  color: #7d838c;
+}
+
+.rows {
+  list-style: none;
+  margin: 0;
+  padding: 4px 8px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 68px 1fr 34px 30px 10px;
+  align-items: center;
+  gap: 6px;
+  color: #9aa0a8;
+}
+
+.row[data-settled] {
+  color: #e6e6e6;
+}
+
+.label {
+  color: #9aa0a8;
+}
+
+.value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trend {
+  margin-left: 4px;
+  color: #e0a030;
+}
+
+.meter {
+  display: flex;
+  gap: 1px;
+}
+
+.meter i {
+  flex: 1;
+  height: 6px;
+  background: #2f333a;
+}
+
+.meter i[data-on] {
+  background: #8fb3ff;
+}
+
+.conf {
+  text-align: right;
+  color: #7d838c;
+}
+
+.dot {
+  color: #4caf72;
+  font-size: 9px;
+}
+
+.row:not([data-settled]) .dot {
+  color: #5a6069;
+}
+
+.would {
+  margin: 0;
+  padding: 4px 8px;
+  border-top: 1px solid #2a2d33;
+}
