@@ -8,10 +8,7 @@ import gallery from './gallery';
 import compare from './compare';
 import closing from './closing';
 
-/**
- * Layout type (as used in content JSON) → layout module.
- * To add a layout: write a module with defineLayout() and add it here.
- */
+// layout name in content JSON → module
 export const layouts: Record<string, LayoutDefinition> = {
   hero,
   'chapter-intro': chapterIntro,

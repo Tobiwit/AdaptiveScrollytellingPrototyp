@@ -7,9 +7,8 @@ export interface LayoutProps<O = Record<string, unknown>> {
   exhibition: Exhibition;
   chapter: Chapter;
   section: Section;
-  /** The section's works, resolved and in order. */
   works: Work[];
-  /** The section's options, parsed by the layout's schema. */
+  /** already parsed by the layout's schema */
   options: O;
 }
 

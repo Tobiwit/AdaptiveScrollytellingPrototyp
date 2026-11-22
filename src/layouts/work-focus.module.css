@@ -67,3 +67,40 @@
   padding-bottom: var(--space-2);
   border-bottom: 1px solid var(--color-rule);
 }
+
+/* supporting: no stage, small image above each text */
+.root[data-presence='0'] {
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+}
+
+.root[data-presence='0'] .steps {
+  gap: var(--space-8);
+  padding: var(--space-5) 0;
+}
+
+.inlineFigure {
+  margin-bottom: var(--space-3);
+}
+
+.inlineFigure > div {
+  justify-content: flex-start;
+}
+
+.step[data-size='S'] .inlineFigure img { max-height: 28vh; }
+.step[data-size='M'] .inlineFigure img { max-height: 40vh; }
+.step[data-size='L'] .inlineFigure img { max-height: 55vh; }
+
+/* leading */
+.root[data-presence='2'] {
+  grid-template-columns: minmax(0, var(--stage)) minmax(0, 0.55fr);
+}
+
+.root[data-presence='2'] .sticky {
+  top: 0;
+  height: 100vh;
+}
+
+.root[data-presence='2'] .stageItem img {
+  max-height: 96vh;
+}

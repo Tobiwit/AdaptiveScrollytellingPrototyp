@@ -2,14 +2,15 @@ import { z } from 'zod';
 import { defineLayout, type LayoutProps } from './types';
 import { TrackedFigure, TrackedSectionText } from '../components/Tracked';
 import { Reveal } from '../components/Reveal';
+import { useAdaptation } from '../adaptation/AdaptationContext';
 import styles from './compare.module.css';
 
 const Options = z.object({});
 
-/** Two works side by side, with the section's text underneath. */
 function Compare({ chapter, section, works }: LayoutProps<z.infer<typeof Options>>) {
+  const { presence } = useAdaptation();
   return (
-    <div className={styles.compare}>
+    <div className={styles.compare} data-presence={presence}>
       {section.title && <h3 className={styles.heading}>{section.title}</h3>}
       <div className={styles.pair}>
         {works.map((work) => (

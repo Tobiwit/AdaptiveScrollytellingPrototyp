@@ -1,6 +1,5 @@
 import { z } from 'zod';
 
-/** Paragraphs of plain text. */
 export const Paragraphs = z.array(z.string());
 
 export const WorkSize = z.enum(['S', 'M', 'L']);
@@ -16,10 +15,10 @@ export const Work = z.object({
   year: z.string(),
   institution: z.string(),
   medium: z.string().optional(),
-  /** Optional heading the text is written under, if it differs from the title. */
+  /** if the text has its own heading */
   headline: z.string().optional(),
   image: z.object({
-    /** `images/foo.jpg` (relative to the content folder) or `/media/...` (local, gitignored). */
+    /** images/… (content folder) or /media/… (gitignored assets) */
     src: z.string().min(1),
     alt: z.string().min(1),
     credit: z.string(),
@@ -29,23 +28,23 @@ export const Work = z.object({
     short: Paragraphs,
     long: Paragraphs,
   }),
-  /** Reserved for similarity attributes (adaptive version). */
+  /** only shown at depth "deep" */
+  context: Paragraphs.optional(),
+  /** for similarity later */
   tags: z.record(z.string(), z.unknown()).default({}),
   size: WorkSize.default('M'),
 });
 export type Work = z.infer<typeof Work>;
 
-/**
- * A section is one layout module. Fields shared by all layouts live here;
- * layout-specific settings go into `options`, which the layout's own schema
- * validates (see src/layouts/registry.ts).
- */
+/** One layout module. Layout-specific settings go in `options`, checked by the layout's schema. */
 export const Section = z.object({
   id: z.string().min(1),
   layout: z.string().min(1),
   kicker: z.string().optional(),
   title: z.string().optional(),
   text: Paragraphs.optional(),
+  /** only shown at depth "deep" */
+  context: Paragraphs.optional(),
   attribution: z.string().optional(),
   works: z.array(z.string()).default([]),
   options: z.record(z.string(), z.unknown()).default({}),
@@ -54,7 +53,7 @@ export type Section = z.infer<typeof Section>;
 
 export const Chapter = z.object({
   id: z.string().min(1),
-  /** Short label for navigation, e.g. "1" or "Intro". */
+  /** nav label, e.g. "1" */
   label: z.string().optional(),
   title: z.string().min(1),
   sections: z.array(Section).min(1),

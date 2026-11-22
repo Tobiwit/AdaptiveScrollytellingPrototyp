@@ -1,26 +1,23 @@
 /**
- * Turns a Google Arts & Culture snapshot (from extract-gac.ts) into an
- * exhibition content folder.
+ * GA&C snapshot (from extract-gac.ts) → content folder.
+ *   npm run build-content [-- --local-images]
  *
- *   npm run build-content                   # images load from Google's servers
- *   npm run build-content -- --local-images # download into assets/, serve from /media/
- *
- * The slide → layout mapping is rule based:
- *   section title slide      → new chapter + `chapter-intro` (first one: `hero`)
- *   text slides              → `text`  (consecutive ones merged)
- *   quote slides             → `text` with style "quote"
- *   artwork "zoom" slides    → works in a `work-focus` (consecutive ones merged)
- *   single image slides      → `gallery` (consecutive ones merged)
- *   two-image slides         → `compare`, taking the text slides that follow
- *   last zoom slide matching `closingHeading` → closing chapter
- * Text is copied verbatim; nothing is written by hand. Missing data becomes "TODO".
+ * Mapping:
+ *   section title slide   → new chapter + chapter-intro (first one: hero)
+ *   text slides           → text (merged)
+ *   quote slides          → text, style quote
+ *   zoom slides           → work-focus (merged)
+ *   single image slides   → gallery (merged)
+ *   two-image slides      → compare + the text after it
+ *   last matching zoom    → closing
+ * Text is copied verbatim, missing data becomes TODO.
  */
 import fs from 'node:fs';
 import path from 'node:path';
 import type { RawAsset, RawSlide, RawStory } from './extract-gac';
 import type { Chapter, Exhibition, Section, Work } from '../src/schema/schema';
 
-// ---- Exhibition-specific settings ------------------------------------------
+// Exhibition-specific
 
 const CONFIG = {
   id: 'courbetorial',
@@ -32,8 +29,6 @@ const CONFIG = {
   creditsLead: 'Content from “Courbetorial”, Museum Folkwang, on Google Arts & Culture.',
   imageSize: '=s1800',
 };
-
-// ---- Helpers ----------------------------------------------------------------
 
 const slug = (s: string) =>
   s
@@ -65,11 +60,9 @@ interface Draft extends Work {
   imageUrl: string;
 }
 
-// ---- Conversion -------------------------------------------------------------
-
 function convert(stories: RawStory[], assets: RawAsset[], localImages: boolean) {
   const assetByHref = new Map(assets.map((a) => [a.href, a]));
-  const works = new Map<string, Draft>(); // key → work
+  const works = new Map<string, Draft>();
   const usedIds = new Set<string>();
   const warnings: string[] = [];
   let credits: string[] = [];
@@ -97,7 +90,7 @@ function convert(stories: RawStory[], assets: RawAsset[], localImages: boolean) 
     return draft;
   }
 
-  /** Work from a linked asset page (title, image and single-image slides). */
+  /** from a linked asset page */
   function workFromAsset(href: string, slide: RawSlide, storyUrl: string): Draft | null {
     const asset = assetByHref.get(href);
     if (!asset) {
@@ -141,7 +134,7 @@ function convert(stories: RawStory[], assets: RawAsset[], localImages: boolean) 
     });
   }
 
-  /** Work from an artwork "zoom" slide (no asset link, caption + text cards). */
+  /** from a zoom slide (no asset link) */
   function workFromZoom(slide: RawSlide, storyUrl: string): Draft | null {
     const cards = slide.cards.filter((c) => !isAudioCard(c.heading));
     if (!cards.length || !slide.caption) return null;
@@ -278,7 +271,6 @@ function convert(stories: RawStory[], assets: RawAsset[], localImages: boolean) 
     }
   }
 
-  // Images and alt text.
   for (const w of works.values()) {
     if (!w.imageUrl) warnings.push(`no image URL for ${w.id}`);
     w.image.src = localImages ? `/media/${CONFIG.id}/${w.id}.jpg` : remoteImageUrl(w.imageUrl);
@@ -300,7 +292,6 @@ function convert(stories: RawStory[], assets: RawAsset[], localImages: boolean) 
   return { exhibition, works: [...works.values()], warnings };
 }
 
-/** Google image URL at the configured size, e.g. https://lh3.googleusercontent.com/ci/…=s1800 */
 function remoteImageUrl(imageUrl: string): string {
   if (!imageUrl) return 'TODO: image';
   return (imageUrl.startsWith('//') ? 'https:' + imageUrl : imageUrl).replace(/=[^/]*$/, '') + CONFIG.imageSize;

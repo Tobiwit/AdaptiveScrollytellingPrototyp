@@ -3,7 +3,8 @@ import type { Chapter, Section, Work } from '../schema/schema';
 import { useWorkPresentation } from '../presentation/PresentationContext';
 import { TrackedUnit } from './TrackedUnit';
 import { WorkFigure } from './WorkFigure';
-import { countWords, Paragraphs } from './Text';
+import { countWords } from './Text';
+import { AdaptiveText, useAdaptiveText } from './AdaptiveText';
 
 interface FigureProps {
   chapter: Chapter;
@@ -13,7 +14,6 @@ interface FigureProps {
   priority?: boolean;
 }
 
-/** A work shown as an image (no text of its own), tracked as a unit. */
 export function TrackedFigure({ chapter, section, work, className, priority }: FigureProps) {
   const { size } = useWorkPresentation(work.id);
   return (
@@ -38,19 +38,19 @@ interface TextProps {
   section: Section;
   className?: string;
   textClassName?: string;
-  /** Rendered before the paragraphs (e.g. a heading), inside the unit. */
   before?: ReactNode;
   after?: ReactNode;
+  /** quotes don't fold */
+  foldable?: boolean;
 }
 
-/** A section's own text, tracked as a unit. Renders nothing if there's no text and no extras. */
-export function TrackedSectionText({ chapter, section, className, textClassName, before, after }: TextProps) {
-  const words = countWords(section.text);
-  if (!words && !before && !after) return null;
+export function TrackedSectionText({ chapter, section, className, textClassName, before, after, foldable = true }: TextProps) {
+  const text = useAdaptiveText(section.text, section.context, foldable && 'teaser');
+  if (!countWords(section.text) && !before && !after) return null;
   return (
-    <TrackedUnit kind="text" chapter={chapter} section={section} words={words} className={className}>
+    <TrackedUnit kind="text" chapter={chapter} section={section} words={text.words} className={className}>
       {before}
-      <Paragraphs text={section.text} className={textClassName} />
+      <AdaptiveText state={text} className={textClassName} />
       {after}
     </TrackedUnit>
   );

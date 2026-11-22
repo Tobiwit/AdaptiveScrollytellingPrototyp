@@ -45,3 +45,33 @@
 .text {
   grid-area: text;
 }
+
+/* supporting: small cover, not sticky */
+.intro[data-cover='true'][data-presence='0'] {
+  grid-template-columns: minmax(0, 7fr) minmax(0, 3fr);
+}
+
+.intro[data-presence='0'] .cover {
+  position: static;
+}
+
+.intro[data-presence='0'] .cover img {
+  max-height: 35vh;
+}
+
+/* leading: full-width cover on top */
+.intro[data-cover='true'][data-presence='2'] {
+  grid-template-areas:
+    'cover  cover'
+    'header text';
+  grid-template-rows: auto auto;
+}
+
+.intro[data-presence='2'] .cover {
+  position: static;
+  margin-bottom: var(--space-4);
+}
+
+.intro[data-presence='2'] .cover img {
+  max-height: 88vh;
+}

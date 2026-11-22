@@ -44,3 +44,30 @@
   margin-top: var(--space-3);
   max-width: var(--measure);
 }
+
+.showAll {
+  display: block;
+  margin: var(--space-5) auto 0;
+}
+
+/* supporting */
+.gallery[data-presence='0'] .item[data-size='S'] { grid-column: span 3; }
+.gallery[data-presence='0'] .item[data-size='M'] { grid-column: span 4; }
+.gallery[data-presence='0'] .item[data-size='L'] { grid-column: span 6; }
+
+.gallery[data-presence='0'] .item img {
+  max-height: 40vh;
+}
+
+/* leading: one work per row */
+.gallery[data-presence='2'] .grid {
+  row-gap: var(--space-8);
+}
+
+.gallery[data-presence='2'] .item[data-size='S'] { grid-column: 3 / span 8; }
+.gallery[data-presence='2'] .item[data-size='M'] { grid-column: 2 / span 10; }
+.gallery[data-presence='2'] .item[data-size='L'] { grid-column: 1 / span 12; }
+
+.gallery[data-presence='2'] .item img {
+  max-height: 92vh;
+}

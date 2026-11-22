@@ -33,3 +33,21 @@
   max-width: var(--measure);
   margin: var(--space-5) auto 0;
 }
+
+/* supporting: small pair, leading: full width */
+.compare[data-presence='0'] .side img {
+  max-height: 38vh;
+}
+
+.compare[data-presence='0'] .pair {
+  max-width: 48rem;
+  margin: 0 auto;
+}
+
+.compare[data-presence='2'] {
+  padding-inline: var(--space-4);
+}
+
+.compare[data-presence='2'] .side img {
+  max-height: 92vh;
+}

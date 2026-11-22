@@ -1,20 +1,31 @@
+import { useState } from 'react';
 import { z } from 'zod';
 import { defineLayout, type LayoutProps } from './types';
 import { WorkFigure } from '../components/WorkFigure';
-import { WorkText, countWords, workTextFor } from '../components/Text';
+import { workTextFor } from '../components/Text';
+import { AdaptiveText, useAdaptiveText } from '../components/AdaptiveText';
 import { TrackedUnit } from '../components/TrackedUnit';
 import { TrackedSectionText } from '../components/Tracked';
 import { Reveal } from '../components/Reveal';
 import { useWorkPresentation } from '../presentation/PresentationContext';
+import { useAdaptation } from '../adaptation/AdaptationContext';
 import type { Chapter, Section, Work } from '../schema/schema';
 import styles from './gallery.module.css';
 
 const Options = z.object({});
 
-/** Several works on a grid; each work's size decides how many columns it spans. */
+/** shown at presence "supporting" */
+const SUPPORTING_COUNT = 2;
+
 function Gallery({ chapter, section, works }: LayoutProps<z.infer<typeof Options>>) {
+  const { presence } = useAdaptation();
+  const [all, setAll] = useState(false);
+  // TODO: use the visitor's top works (workScores)
+  const shown = presence === 0 && !all ? works.slice(0, SUPPORTING_COUNT) : works;
+  const hidden = works.length - shown.length;
+
   return (
-    <div className={styles.gallery}>
+    <div className={styles.gallery} data-presence={presence}>
       <TrackedSectionText
         chapter={chapter}
         section={section}
@@ -23,23 +34,29 @@ function Gallery({ chapter, section, works }: LayoutProps<z.infer<typeof Options
         before={section.title && <h3 className={styles.heading}>{section.title}</h3>}
       />
       <div className={styles.grid}>
-        {works.map((work) => (
+        {shown.map((work) => (
           <Item key={work.id} work={work} chapter={chapter} section={section} />
         ))}
       </div>
+      {hidden > 0 && (
+        <button type="button" className={`more-toggle ${styles.showAll}`} onClick={() => setAll(true)}>
+          Show all {works.length} works
+        </button>
+      )}
     </div>
   );
 }
 
 function Item({ work, chapter, section }: { work: Work; chapter: Chapter; section: Section }) {
   const { size, textVariant } = useWorkPresentation(work.id);
+  const text = useAdaptiveText(workTextFor(work, textVariant), work.context, 'hide');
   return (
     <TrackedUnit
       kind="work"
       chapter={chapter}
       section={section}
       work={work}
-      words={countWords(workTextFor(work, textVariant))}
+      words={text.words}
       hasImage
       size={size}
       className={styles.item}
@@ -47,7 +64,9 @@ function Item({ work, chapter, section }: { work: Work; chapter: Chapter; sectio
     >
       <Reveal>
         <WorkFigure work={work} size={size} />
-        <WorkText work={work} variant={textVariant} className={`prose ${styles.text}`} />
+        <div className={styles.text}>
+          <AdaptiveText state={text} className="prose" moreLabel="Read text" />
+        </div>
       </Reveal>
     </TrackedUnit>
   );
