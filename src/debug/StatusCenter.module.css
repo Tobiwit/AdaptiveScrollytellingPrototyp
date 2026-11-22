@@ -100,3 +100,15 @@
   padding: 4px 8px;
   border-top: 1px solid #2a2d33;
 }
+
+.gate {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  border: 0;
+  background: rgba(0, 0, 0, 0.82);
+  color: #e6e6e6;
+  font: 14px/1.4 ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}

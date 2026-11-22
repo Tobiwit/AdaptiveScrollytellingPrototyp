@@ -1,18 +1,34 @@
-import { createContext, useContext, useEffect, useState, useSyncExternalStore, type ReactNode, type RefObject } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState, useSyncExternalStore, type ReactNode, type RefObject } from 'react';
 import { SignalTracker } from './tracker';
 import type { SignalSnapshot, UnitMeta } from './types';
 
 const TrackerContext = createContext<SignalTracker | null>(null);
+const NewRunContext = createContext<(() => void) | null>(null);
 
-/** Runs one SignalTracker for the session. */
+/**
+ * Runs one SignalTracker per run. A new run swaps in a fresh tracker: units re-register
+ * with it, and everything built on the tracker (insights, conclusions) starts over.
+ */
 export function SignalsProvider({ children }: { children: ReactNode }) {
-  const [tracker] = useState(() => new SignalTracker());
+  const [tracker, setTracker] = useState(() => new SignalTracker());
+  const newRun = useCallback(() => setTracker(new SignalTracker()), []);
   useEffect(() => {
     tracker.start();
     if (import.meta.env.DEV) (window as unknown as { __signals: SignalTracker }).__signals = tracker;
     return () => tracker.stop();
   }, [tracker]);
-  return <TrackerContext.Provider value={tracker}>{children}</TrackerContext.Provider>;
+  return (
+    <NewRunContext.Provider value={newRun}>
+      <TrackerContext.Provider value={tracker}>{children}</TrackerContext.Provider>
+    </NewRunContext.Provider>
+  );
+}
+
+/** Starts a new run: all signals, insights and conclusions are reset. */
+export function useNewRun(): () => void {
+  const newRun = useContext(NewRunContext);
+  if (!newRun) throw new Error('needs a <SignalsProvider>');
+  return newRun;
 }
 
 export function useSignalTracker(): SignalTracker {

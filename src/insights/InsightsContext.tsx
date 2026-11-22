@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, useSyncExternalStore, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, useSyncExternalStore, type ReactNode } from 'react';
 import { useSignalTracker } from '../signals/SignalsContext';
 import { InsightEngine } from './engine';
 import type { InsightState } from './types';
@@ -8,7 +8,8 @@ const EngineContext = createContext<InsightEngine | null>(null);
 /** Runs the InsightEngine on top of the session's SignalTracker. */
 export function InsightsProvider({ chapterTitles, children }: { chapterTitles: Record<string, string>; children: ReactNode }) {
   const tracker = useSignalTracker();
-  const [engine] = useState(() => new InsightEngine(tracker, chapterTitles));
+  // A new tracker (new run) gets a new engine.
+  const engine = useMemo(() => new InsightEngine(tracker, chapterTitles), [tracker, chapterTitles]);
   useEffect(() => {
     engine.start();
     if (import.meta.env.DEV) (window as unknown as { __insights: InsightEngine }).__insights = engine;

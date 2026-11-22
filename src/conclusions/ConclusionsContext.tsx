@@ -12,6 +12,8 @@ export function ConclusionsProvider({ hasTags, children }: { hasTags: boolean; c
   const [state, setState] = useState(() => concludeRun(tracker.getSnapshot(), engine.getState(), null, hasTags));
 
   useEffect(() => {
+    // New run: start over without the previous run's settled beliefs.
+    setState(concludeRun(tracker.getSnapshot(), engine.getState(), null, hasTags));
     const id = setInterval(() => setState((prev) => concludeRun(tracker.getSnapshot(), engine.getState(), prev, hasTags)), 1000);
     return () => clearInterval(id);
   }, [tracker, engine, hasTags]);

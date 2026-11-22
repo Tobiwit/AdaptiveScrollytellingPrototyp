@@ -1,4 +1,7 @@
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useRunConclusions } from '../conclusions/ConclusionsContext';
+import { useNewRun } from '../signals/SignalsContext';
 import type { Conclusion } from '../conclusions/conclude';
 import { useStoredFlag } from './useStoredFlag';
 import styles from './StatusCenter.module.css';
@@ -7,6 +10,28 @@ import styles from './StatusCenter.module.css';
 export function StatusCenter() {
   const run = useRunConclusions();
   const [collapsed, setCollapsed] = useStoredFlag('signals-status-collapsed');
+  const newRun = useNewRun();
+  const [waiting, setWaiting] = useState(false);
+
+  // No scrolling behind the start screen.
+  useEffect(() => {
+    if (!waiting) return;
+    const root = document.documentElement;
+    root.style.overflow = 'hidden';
+    return () => {
+      root.style.overflow = '';
+    };
+  }, [waiting]);
+
+  const reset = () => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    setWaiting(true);
+  };
+  const start = () => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    newRun();
+    setWaiting(false);
+  };
 
   return (
     <section className={styles.card} aria-label="Run status">
@@ -14,6 +39,9 @@ export function StatusCenter() {
         <strong>Run</strong>
         <span className={styles.muted}>{run.calibrated ? 'calibrated' : 'calibrating'}</span>
         <span className={styles.grow} />
+        <button onClick={reset} title="Reset run: back to the top, all statistics cleared">
+          reset
+        </button>
         <button onClick={() => setCollapsed(!collapsed)} aria-expanded={!collapsed}>
           {collapsed ? '+' : '–'}
         </button>
@@ -28,6 +56,13 @@ export function StatusCenter() {
       <p className={styles.would}>
         <span className={styles.muted}>would:</span> {run.wouldDo.join(' · ')}
       </p>
+      {waiting &&
+        createPortal(
+          <button className={styles.gate} onClick={start} data-signals-ignore autoFocus>
+            Click to start
+          </button>,
+          document.body,
+        )}
     </section>
   );
 }

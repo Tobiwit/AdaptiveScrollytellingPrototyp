@@ -11,13 +11,12 @@ export function InsightToasts() {
   const engine = useInsightEngine();
   const [toasts, setToasts] = useState<{ insight: Insight; until: number }[]>([]);
 
-  useEffect(
-    () =>
-      engine.insights.subscribe((insight) =>
-        setToasts((ts) => [...ts, { insight, until: Date.now() + SHOW_MS }].slice(-MAX)),
-      ),
-    [engine],
-  );
+  useEffect(() => {
+    setToasts([]); // new run
+    return engine.insights.subscribe((insight) =>
+      setToasts((ts) => [...ts, { insight, until: Date.now() + SHOW_MS }].slice(-MAX)),
+    );
+  }, [engine]);
 
   useEffect(() => {
     if (!toasts.length) return;
