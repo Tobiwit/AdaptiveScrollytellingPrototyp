@@ -15,10 +15,7 @@ const MIME: Record<string, string> = {
   '.svg': 'image/svg+xml',
 };
 
-/**
- * Serves the gitignored `assets/` folder at `/media/` in dev and copies it
- * into the build output, so downloaded images never end up in git.
- */
+// assets/ is gitignored: serve it at /media/ in dev and copy it into the build
 function localMedia(): Plugin {
   let outDir = 'dist';
   return {

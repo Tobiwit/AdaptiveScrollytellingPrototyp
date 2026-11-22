@@ -5,14 +5,14 @@ import { concludeRun, type RunConclusions } from './conclude';
 
 const Ctx = createContext<RunConclusions | null>(null);
 
-/** Recomputes the run conclusions once per second. */
+/** Recomputed every second. */
 export function ConclusionsProvider({ hasTags, children }: { hasTags: boolean; children: ReactNode }) {
   const tracker = useSignalTracker();
   const engine = useInsightEngine();
   const [state, setState] = useState(() => concludeRun(tracker.getSnapshot(), engine.getState(), null, hasTags));
 
   useEffect(() => {
-    // New run: start over without the previous run's settled beliefs.
+    // new run: forget the old settled beliefs
     setState(concludeRun(tracker.getSnapshot(), engine.getState(), null, hasTags));
     const id = setInterval(() => setState((prev) => concludeRun(tracker.getSnapshot(), engine.getState(), prev, hasTags)), 1000);
     return () => clearInterval(id);

@@ -15,20 +15,14 @@ import {
 
 type NewInsight = Omit<Insight, 'id' | 't'> & { t?: number };
 
-/**
- * The layer above the raw signals: turns what the SignalTracker measures into
- * conclusions with a confidence ("only skimmed X", "inactive", "scrolls faster
- * than usual", …), keeps a verdict per unit and a profile of the visitor.
- * Adaptation decisions will read from this, not from the raw signals.
- */
+/** Layer 2: verdicts per unit, insights with a confidence, and a visitor profile. */
 export class InsightEngine {
-  /** Every new insight as it's drawn (the debug toasts listen here). */
   readonly insights = createEventBus<Insight>();
 
   private listeners = new Set<() => void>();
   private history: Insight[] = [];
   private verdicts = new Map<string, UnitVerdict>();
-  /** Units that left focus and wait to be judged: unitId → exit time. */
+  /** unitId → when it left focus */
   private pending = new Map<string, number>();
   private nextId = 1;
   private state: InsightState;
@@ -70,8 +64,6 @@ export class InsightEngine {
   };
 
   getState = () => this.state;
-
-  // ---- events from the tracker ------------------------------------------------
 
   private onEvent(e: SignalEvent) {
     const snap = this.tracker.getSnapshot();
@@ -142,13 +134,11 @@ export class InsightEngine {
     }
   }
 
-  // ---- every tracker tick -----------------------------------------------------
-
   private onTick() {
     const snap = this.tracker.getSnapshot();
     const t = snap.session.elapsedMs;
 
-    // Judge units that have been out of focus long enough.
+    // Judge units that have been out of focus long enough
     for (const [unitId, exitAt] of this.pending) {
       if (snap.session.focusUnitId === unitId) this.pending.delete(unitId);
       else if (t - exitAt >= C.settleMs) {
@@ -181,7 +171,7 @@ export class InsightEngine {
     this.dirty = true;
     if (prev?.engagement === j.engagement) return;
 
-    // Brief pointer sweeps over images: record, but don't announce.
+    // short pointer sweeps: record, but don't announce
     if (!prev && !textual && u.dwellMs < 500) return;
     const base = describeEngagement(j.engagement, u.label, textual);
     this.add({
@@ -198,7 +188,7 @@ export class InsightEngine {
     this.updateStyle();
   }
 
-  /** Reading band moved to another unit: look for units passed unseen and for chapter changes. */
+  /** The band moved on: look for units passed unseen and chapter changes. */
   private checkBandMove(snap: SignalSnapshot) {
     const bandId = snap.session.bandFocusUnitId;
     if (!bandId || bandId === this.lastBandId) return;
@@ -368,8 +358,6 @@ export class InsightEngine {
       evidence: [`${Math.round(low * 100)}% skipped/skimmed, ${Math.round(high * 100)}% dwelled`, `${n} texts judged`],
     });
   }
-
-  // ---- bookkeeping -----------------------------------------------------------
 
   private add(i: NewInsight) {
     const insight: Insight = { ...i, id: this.nextId++, t: Math.round(i.t ?? this.tracker.getSnapshot().session.elapsedMs) };

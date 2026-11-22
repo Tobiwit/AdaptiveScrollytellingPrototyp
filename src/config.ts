@@ -1,7 +1,4 @@
-/**
- * Which exhibition to show: the name of a folder in `content/`.
- * Change it here, or override it with VITE_EXHIBITION=<id> or ?exhibition=<id> (dev).
- */
+// Folder in content/. Override with VITE_EXHIBITION or ?exhibition= (dev).
 export const DEFAULT_EXHIBITION = 'courbetorial';
 
 export function getExhibitionId(): string {

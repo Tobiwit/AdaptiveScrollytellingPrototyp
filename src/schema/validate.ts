@@ -13,11 +13,7 @@ export interface LoadedExhibition {
 
 export class ContentError extends Error {}
 
-/**
- * Parses raw JSON and checks everything the schema alone can't:
- * unique ids, work references, known layouts and per-layout options.
- * Pure (no Vite APIs), so the app and the tests share it.
- */
+/** Also checks ids, work refs, layouts and their options. No Vite APIs, so tests use it too. */
 export function validateContent(
   rawExhibition: unknown,
   rawWorks: unknown,

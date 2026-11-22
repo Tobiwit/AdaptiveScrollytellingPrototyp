@@ -5,19 +5,13 @@ export interface WorkPresentation {
   textVariant: TextVariant;
 }
 
-/**
- * Decides how each work is presented. Components never read size or text
- * variant from the content directly; they ask the active policy.
- *
- * Adaptation seam: an AdaptivePolicy implements this same interface and calls
- * the subscribed listeners whenever its decisions change.
- */
+/** Adaptation seam: components get size and text variant only from here. */
 export interface PresentationPolicy {
   getWorkPresentation(workId: string): WorkPresentation;
   subscribe(listener: () => void): () => void;
 }
 
-/** v1 policy: returns the content defaults and never changes. */
+/** v1: content defaults, never changes. */
 export class StaticPolicy implements PresentationPolicy {
   constructor(
     private readonly works: Map<string, Work>,

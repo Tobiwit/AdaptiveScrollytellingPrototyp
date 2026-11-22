@@ -7,7 +7,6 @@ export function PresentationProvider({ policy, children }: { policy: Presentatio
   return <PolicyContext.Provider value={policy}>{children}</PolicyContext.Provider>;
 }
 
-/** Returns `{ size, textVariant }` for a work and re-renders when the policy changes it. */
 export function useWorkPresentation(workId: string): WorkPresentation {
   const policy = useContext(PolicyContext);
   if (!policy) throw new Error('useWorkPresentation needs a <PresentationProvider>');

@@ -1,10 +1,7 @@
 import type { UnitKind } from '../signals/types';
 
-/**
- * How a visitor engaged with one unit, from least to most.
- * Text units use skipped → skimmed → read → lingered → intense,
- * image-only units use skipped → glanced → looked → intense.
- */
+// text: skipped → skimmed → read → lingered → intense
+// image: skipped → glanced → looked → intense
 export type Engagement = 'skipped' | 'glanced' | 'skimmed' | 'read' | 'looked' | 'lingered' | 'intense';
 
 export const ENGAGEMENT_RANK: Record<Engagement, number> = {
@@ -19,11 +16,11 @@ export const ENGAGEMENT_RANK: Record<Engagement, number> = {
 
 export interface Judgement {
   engagement: Engagement;
-  /** 0–1: how sure the rules are about this verdict. */
+  /** 0–1 */
   confidence: number;
-  /** dwell ÷ expected dwell. */
+  /** dwell / expected */
   ratio: number;
-  /** Human-readable reasons, for the debug view and later for the thesis. */
+  /** reasons, shown in the debug view */
   evidence: string[];
 }
 
@@ -32,7 +29,7 @@ export interface UnitVerdict extends Judgement {
   workId?: string;
   chapterId: string;
   kind: UnitKind;
-  /** Judged as text (enough words) rather than as an image. */
+  /** judged as text (enough words), not as image */
   textual: boolean;
   label: string;
   /** ms since session start. */
@@ -58,7 +55,6 @@ export type InsightKind =
   | 'chapter-summary'
   | 'reading-style';
 
-/** One abstracted conclusion drawn from the raw signals. */
 export interface Insight {
   id: number;
   /** ms since session start. */
@@ -76,14 +72,13 @@ export interface Insight {
 
 export type ReadingStyle = 'skimmer' | 'reader' | 'deep-reader';
 
-/** What we currently believe about the visitor as a whole. */
 export interface VisitorProfile {
   readingStyle: ReadingStyle | null;
   styleConfidence: number;
-  /** Number of text verdicts the style is based on. */
+  /** text verdicts it's based on */
   styleBasis: number;
   paceWpm: number | null;
-  /** Whether the pointer is a usable gaze proxy for this visitor (null = not known yet). */
+  /** null = not known yet */
   pointerFollowsReading: boolean | null;
   scrollTempo: 'normal' | 'fast' | 'slow';
 }

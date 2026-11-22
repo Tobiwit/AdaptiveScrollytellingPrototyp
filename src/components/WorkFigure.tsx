@@ -4,7 +4,6 @@ import styles from './WorkFigure.module.css';
 interface Props {
   work: Work;
   size: WorkSize;
-  /** Load eagerly (above the fold). */
   priority?: boolean;
   caption?: boolean;
   className?: string;

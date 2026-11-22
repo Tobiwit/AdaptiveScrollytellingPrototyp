@@ -47,15 +47,8 @@ export function expectedDwellMs(meta: Pick<UnitMeta, 'words' | 'hasImage' | 'siz
   return (meta.hasImage ? C.imageMs[meta.size ?? 'M'] : 0) + (meta.words / wpm) * 60_000;
 }
 
-/**
- * Collects behavioural signals for the whole session: scroll speed, scroll-backs,
- * dwell vs expected dwell per unit, tab visibility, idleness, pointer and clicks.
- *
- * It samples every `tickMs` and attributes everything to the single focused unit.
- * Nothing leaves the browser; the snapshot is the basis for adaptation later.
- */
+/** Measures behaviour every tick and attributes it to the one focused unit. */
 export class SignalTracker {
-  /** Notable events as they happen (for a future adaptive policy and logging). */
   readonly events = createEventBus<SignalEvent>();
 
   private units = new Map<string, UnitState>();
@@ -76,7 +69,7 @@ export class SignalTracker {
   private idle = false;
   private idleSince = 0;
   private focusId: string | null = null;
-  /** Focus from scroll position alone (ignoring the pointer). */
+  /** ignoring the pointer */
   private bandFocusId: string | null = null;
   private time = { activeMs: 0, idleMs: 0, hiddenMs: 0 };
 
@@ -111,8 +104,6 @@ export class SignalTracker {
   constructor() {
     this.snapshot = this.buildSnapshot(0);
   }
-
-  // ---- lifecycle -----------------------------------------------------------
 
   start() {
     if (this.running) return;
@@ -163,9 +154,7 @@ export class SignalTracker {
     for (const off of this.teardown.splice(0)) off();
   }
 
-  // ---- units ---------------------------------------------------------------
-
-  /** Registers (or updates) a unit's element. Stats survive re-registration. */
+  /** Stats survive re-registration. */
   register(el: HTMLElement, meta: UnitMeta): () => void {
     let state = this.units.get(meta.unitId);
     if (!state) {
@@ -205,16 +194,12 @@ export class SignalTracker {
     return this.units.get(unitId)?.el ?? null;
   }
 
-  // ---- React store interface -----------------------------------------------
-
   subscribe = (listener: () => void) => {
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
   };
 
   getSnapshot = () => this.snapshot;
-
-  // ---- input handlers --------------------------------------------------------
 
   private now() {
     return performance.now() - this.t0;
@@ -288,8 +273,6 @@ export class SignalTracker {
     this.emit({ type: 'click', unitId, part, target: desc });
   }
 
-  // ---- sampling ------------------------------------------------------------
-
   private tick() {
     const t = this.now();
     const rawDt = t - this.lastTick;
@@ -311,7 +294,7 @@ export class SignalTracker {
     s.distanceVh += Math.abs(dyVh);
     const moving = speed > C.movingVhPerS;
     if (moving && !navigating) {
-      // Welford running mean/variance of moving speed = this visitor's baseline
+      // Welford mean/variance: this visitor's baseline
       s.n++;
       const d = speed - s.mean;
       s.mean += d / s.n;
@@ -334,7 +317,7 @@ export class SignalTracker {
     else if (this.idle) this.time.idleMs += rawDt;
     else this.time.activeMs += dt;
 
-    // Geometry: which units are in the focus band?
+    // Units in the band
     const bandTop = vh * C.band[0];
     const bandBottom = vh * C.band[1];
     const line = vh * C.readingLine;
@@ -357,19 +340,19 @@ export class SignalTracker {
       }
     }
 
-    // Band focus: the candidate with most text, else most overlap with the band.
+    // Band focus: most text, then most overlap
     const prevBand = this.bandFocusId ? this.units.get(this.bandFocusId) : undefined;
     let bandFocus: UnitState | undefined;
     if (candidates.length) {
       bandFocus = candidates.sort((x, z) => z.u.meta.words - x.u.meta.words || z.overlap - x.overlap)[0].u;
     } else if (prevBand?.el) {
-      // Between units (e.g. the gaps in work-focus): keep it while it's still on screen.
+      // in a gap (e.g. work-focus): keep it while it's on screen
       const r = prevBand.el.getBoundingClientRect();
       if (r.bottom > 0 && r.top < vh) bandFocus = prevBand;
     }
     this.bandFocusId = bandFocus?.meta.unitId ?? null;
 
-    // Focus: a moving pointer on a unit wins (gaze proxy), otherwise the band focus.
+    // A moving pointer beats the band
     const pointerEngaged = this.pointer.inside && t - this.pointer.lastMove < C.pointerEngagedMs;
     const pointerUnit = pointerEngaged && this.pointer.unitId ? this.units.get(this.pointer.unitId) : undefined;
     const next = pointerUnit?.el ? pointerUnit : bandFocus;
@@ -380,7 +363,7 @@ export class SignalTracker {
       this.focusId = nextId;
     }
 
-    // Dwell and scroll behaviour while focused
+    // Dwell
     if (next && active) {
       next.dwellMs += dt;
       next.currentVisitMs += dt;
@@ -404,12 +387,12 @@ export class SignalTracker {
       this.episode = null;
     }
 
-    // Pointer as gaze proxy
+    // Pointer
     if (active && pointerEngaged && this.pointer.unitId && this.pointer.part) {
       this.pointerEngagedMs += dt;
       const pu = this.units.get(this.pointer.unitId);
       if (pu) pu.hoverMs[this.pointer.part] += dt;
-      // Compared with the band focus, so this measures whether the pointer follows the reading position.
+      // vs the band focus: does the pointer follow the reading?
       if (this.pointer.unitId === this.bandFocusId) this.pointerOnFocusMs += dt;
     } else if (active && pointerEngaged) {
       this.pointerEngagedMs += dt;
@@ -442,7 +425,7 @@ export class SignalTracker {
       this.emit({ type: 'skip', unitId, visitMs, expectedMs: Math.round(expected) });
     }
 
-    // Reading pace from units that were read to the end.
+    // Pace only from units read to the end
     const relSpeed = u.speedN && this.scroll.n >= 4 ? u.speedSum / u.speedN / this.scroll.mean : 1;
     if (!u.paceSampled && words >= C.paceMinWords && u.textProgress >= C.paceMinProgress && relSpeed <= C.paceMaxRelSpeed) {
       const readingMs = u.dwellMs - (u.meta.hasImage ? C.imageMs[u.meta.size ?? 'M'] : 0);
@@ -472,8 +455,6 @@ export class SignalTracker {
       toUnitId: this.focusId,
     });
   }
-
-  // ---- snapshot ------------------------------------------------------------
 
   private buildSnapshot(t: number): SignalSnapshot {
     const s = this.scroll;

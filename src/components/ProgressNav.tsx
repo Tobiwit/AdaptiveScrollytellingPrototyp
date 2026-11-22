@@ -2,12 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 import type { Chapter } from '../schema/schema';
 import styles from './ProgressNav.module.css';
 
-/** Scroll progress bar plus a chapter rail that marks the current chapter. */
 export function ProgressNav({ chapters }: { chapters: Chapter[] }) {
   const barRef = useRef<HTMLDivElement>(null);
   const [current, setCurrent] = useState(chapters[0]?.id);
 
-  // Progress bar: written straight to the DOM, no re-render per scroll frame.
+  // straight to the DOM, no re-render per scroll frame
   useEffect(() => {
     let frame = 0;
     const update = () => {
@@ -29,7 +28,7 @@ export function ProgressNav({ chapters }: { chapters: Chapter[] }) {
     };
   }, []);
 
-  // Current chapter: the one crossing the middle of the viewport.
+  // the chapter crossing the middle of the viewport
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {

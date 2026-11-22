@@ -2,10 +2,7 @@ import { signalConfig } from '../signals/config';
 import type { SignalSnapshot } from '../signals/types';
 import type { Engagement, InsightState, UnitVerdict } from '../insights/types';
 
-/**
- * Third layer: standing conclusions about this visitor and run, built from the
- * unit verdicts (layer 2) and session signals (layer 1). Adaptation reads these.
- */
+/** Layer 3: standing beliefs about the run, from verdicts and session signals. */
 export type ConclusionId =
   | 'appetite'
   | 'context'
@@ -24,33 +21,32 @@ export interface Conclusion {
   id: ConclusionId;
   label: string;
   value: string;
-  /** 0–1 for the little meter, null = no meter. */
+  /** 0–1, null = no meter */
   meter: number | null;
   confidence: number;
-  /** How much evidence it rests on (verdicts, samples…). */
+  /** amount of evidence (verdicts, samples) */
   basis: number;
   trend: 'up' | 'down' | null;
-  /** Confident enough to act on (with hysteresis, see below). */
+  /** confident enough to act on */
   settled: boolean;
   evidence: string[];
-  /** Set when it can't be computed yet (e.g. "needs tags"). */
+  /** e.g. "needs tags" */
   waiting?: string;
 }
 
 export interface RunConclusions {
   items: Conclusion[];
-  /** Interest per work (0–1), the input for size adaptation. */
+  /** 0–1, for image size */
   workScores: Record<string, number>;
-  /** Enough evidence to start adapting at all. */
   calibrated: boolean;
-  /** What a policy would do right now (preview only, nothing is applied). */
+  /** preview only, nothing is applied */
   wouldDo: string[];
 }
 
 const SCORE: Record<Engagement, number> = { skipped: -1, glanced: -0.5, skimmed: -0.5, read: 0, looked: 0, lingered: 0.5, intense: 1 };
-/** Recent verdicts count more: weight halves every this many units. */
+/** weight halves every N verdicts */
 const HALF_LIFE = 6;
-/** Settled once confidence reaches SETTLE; stays settled down to UNSETTLE while the value holds. */
+// settle at SETTLE, stay settled down to UNSETTLE while the value holds
 const SETTLE = 0.7;
 const UNSETTLE = 0.55;
 const CALIBRATION = { verdicts: 6, activeMs: 60_000 };
@@ -62,7 +58,7 @@ export function concludeRun(signals: SignalSnapshot, insights: InsightState, pre
   const unitById = new Map(signals.units.map((u) => [u.unitId, u]));
   const items: Omit<Conclusion, 'settled'>[] = [];
 
-  // 1 Text appetite: how much text this visitor wants (recent verdicts count more).
+  // Text appetite
   const a = weighted(texts);
   const recentVsAll = texts.length >= 6 ? a.mean - mean(texts.map((v) => SCORE[v.engagement])) : 0;
   items.push({
@@ -76,7 +72,7 @@ export function concludeRun(signals: SignalSnapshot, insights: InsightState, pre
     evidence: [`${texts.length} texts judged, score ${a.mean.toFixed(2)}`, counts(texts)],
   });
 
-  // 2 Context interest: section texts vs the works' own texts (depth, not length).
+  // Context: section texts vs the works' own texts
   const ctx = weighted(texts.filter((v) => v.kind === 'text'));
   const own = weighted(texts.filter((v) => v.kind === 'work'));
   const rel = own.n ? ctx.mean - own.mean : 0;
@@ -91,7 +87,7 @@ export function concludeRun(signals: SignalSnapshot, insights: InsightState, pre
     evidence: [`context texts ${ctx.mean.toFixed(2)} (${ctx.n})`, `work texts ${own.mean.toFixed(2)} (${own.n})`],
   });
 
-  // 3 Engagement trend: last 6 verdicts vs the ones before, plus skipping and scroll tempo.
+  // Trend: last 6 verdicts vs the ones before
   const recent = verdicts.slice(-6);
   const earlier = verdicts.slice(0, -6);
   let trendScore = 0;
@@ -114,7 +110,7 @@ export function concludeRun(signals: SignalSnapshot, insights: InsightState, pre
     evidence: [`recent ${recent.length} vs earlier ${earlier.length} verdicts`, `scroll tempo ${insights.profile.scrollTempo}`],
   });
 
-  // 4 Reading pace (calibrates expected dwell; not decided on directly).
+  // Pace (only calibrates expected dwell)
   const wpm = s.readingPaceWpm;
   items.push({
     id: 'pace',
@@ -127,7 +123,7 @@ export function concludeRun(signals: SignalSnapshot, insights: InsightState, pre
     evidence: wpm ? [`${(wpm / signalConfig.readingWpm).toFixed(2)}× the default ${signalConfig.readingWpm} wpm`] : ['no text read to the end yet'],
   });
 
-  // 5 Visual orientation: images vs texts, by verdicts and (if trusted) pointer time.
+  // Visual: images vs texts, pointer only if trusted
   const img = weighted(verdicts.filter((v) => !v.textual && v.kind === 'work'));
   const pointerOk = insights.profile.pointerFollowsReading !== false;
   const hoverImg = sum(signals.units.map((u) => u.hoverMs.image));
@@ -145,7 +141,7 @@ export function concludeRun(signals: SignalSnapshot, insights: InsightState, pre
     evidence: [`images ${img.mean.toFixed(2)} (${img.n}) vs texts ${a.mean.toFixed(2)} (${a.n})`, pointerOk ? `pointer image share ${pct((ptr + 1) / 2)}` : 'pointer ignored'],
   });
 
-  // 6 Interest per work: best verdict across its units + returns, clicks, pointer on image.
+  // Interest per work
   const workScores: Record<string, number> = {};
   const workLabels: Record<string, string> = {};
   for (const v of verdicts) {
@@ -171,7 +167,7 @@ export function concludeRun(signals: SignalSnapshot, insights: InsightState, pre
     evidence: top.slice(0, 3).map(([id, sc]) => `${short(workLabels[id], 28)} ${sc.toFixed(2)}`),
   });
 
-  // 7 Interest profile by attribute: needs tags on the works.
+  // Interests by tag
   items.push({
     id: 'interests',
     label: 'interests',
@@ -184,7 +180,7 @@ export function concludeRun(signals: SignalSnapshot, insights: InsightState, pre
     waiting: hasTags ? 'not built yet' : 'needs tags',
   });
 
-  // 8 Reading strain: slow pace, re-reading, long dwell without finishing, idling on texts.
+  // Strain
   const textUnits = signals.units.filter((u) => u.words >= 15 && u.visits > 0);
   const rereads = sum(textUnits.map((u) => u.returns));
   const stuck = texts.filter((v) => SCORE[v.engagement] >= 0.5 && (unitById.get(v.unitId)?.textProgress ?? 1) < 0.6).length;
@@ -199,14 +195,14 @@ export function concludeRun(signals: SignalSnapshot, insights: InsightState, pre
     label: 'strain',
     value: texts.length < 3 ? '–' : strain < 0.25 ? 'none' : strain < 0.5 ? 'possible' : 'likely',
     meter: texts.length < 3 ? null : clamp(strain),
-    // Easily confused with interest, so capped low on purpose.
+    // easily confused with interest, so capped
     confidence: texts.length < 3 ? 0 : Math.min(0.8, evidence(texts.length / 2) * (0.5 + strain / 2)),
     basis: texts.length,
     trend: null,
     evidence: [`re-reads ${rereads}`, `long but unfinished ${stuck}`, `idle on text ${idleOnText}`, wpm ? `pace ${Math.round(wpm)} wpm` : 'pace unknown'],
   });
 
-  // 9 Presence right now.
+  // Presence
   const presence = !s.visible ? 'away' : s.idle ? 'away' : s.msSinceActivity < 15_000 && s.focusUnitId ? 'engaged' : 'passive';
   items.push({
     id: 'presence',
@@ -219,7 +215,7 @@ export function concludeRun(signals: SignalSnapshot, insights: InsightState, pre
     evidence: [!s.visible ? 'tab hidden' : s.idle ? 'no input' : `last input ${Math.round(s.msSinceActivity / 1000)}s ago`],
   });
 
-  // 10 Signal trust: how much to believe everything else.
+  // Trust
   const pf = insights.profile.pointerFollowsReading;
   const trustPts = (pf === true ? 1 : pf === false ? -1 : 0) + (s.context.coarsePointer ? -1 : 0) + (verdicts.length >= 10 ? 1 : verdicts.length < 4 ? -1 : 0) + (s.navJumps > 3 ? -0.5 : 0);
   items.push({
@@ -233,7 +229,7 @@ export function concludeRun(signals: SignalSnapshot, insights: InsightState, pre
     evidence: [`pointer ${pf === null ? 'unknown' : pf ? 'usable' : 'not usable'}`, s.context.coarsePointer ? 'touch device' : 'mouse', `${verdicts.length} verdicts`, `${s.navJumps} nav jumps`],
   });
 
-  // 11 Navigation style.
+  // Navigation
   const bs = s.scroll.backscrolls;
   items.push({
     id: 'navigation',
@@ -246,7 +242,7 @@ export function concludeRun(signals: SignalSnapshot, insights: InsightState, pre
     evidence: [`${bs} scroll-backs`, `${s.navJumps} nav jumps`],
   });
 
-  // 12 Run progress: how far down the exhibition, active time, projected total.
+  // Progress
   const reached = Math.max(-1, ...signals.units.filter((u) => u.visits > 0 || u.bandMs > 0).map((u) => u.order));
   const progress = signals.units.length ? (reached + 1) / signals.units.length : 0;
   const projected = progress > 0.05 ? s.activeMs / progress : null;
@@ -272,7 +268,6 @@ export function concludeRun(signals: SignalSnapshot, insights: InsightState, pre
   return { items: settled, workScores, calibrated, wouldDo: preview(settled, calibrated, top.length ? workLabels[top[0][0]] : null, top[0]?.[1] ?? 0) };
 }
 
-/** What a policy would do with these conclusions. Preview only. */
 function preview(items: Conclusion[], calibrated: boolean, topLabel: string | null, topScore: number): string[] {
   const get = (id: ConclusionId) => items.find((c) => c.id === id)!;
   const is = (id: ConclusionId, value: string) => get(id).settled && get(id).value === value;
@@ -289,8 +284,6 @@ function preview(items: Conclusion[], calibrated: boolean, topLabel: string | nu
   return out.length ? out : ['no change'];
 }
 
-// ---- helpers ----------------------------------------------------------------
-
 function weighted(vs: UnitVerdict[]) {
   const n = vs.length;
   const w = vs.map((v, i) => v.confidence * 0.5 ** ((n - 1 - i) / HALF_LIFE));
@@ -300,7 +293,7 @@ function weighted(vs: UnitVerdict[]) {
   return { mean: m, std: Math.sqrt(variance), weight, n };
 }
 
-/** Confidence from amount of evidence: ~0.63 at 2, ~0.92 at 5. */
+/** ~0.63 at 2, ~0.92 at 5 */
 const evidence = (w: number) => 1 - Math.exp(-w / 2);
 const tri = (x: number, lo: number, hi: number, [a, b, c]: string[]) => (x < lo ? a : x > hi ? c : b);
 const arrow = (d: number, t: number): 'up' | 'down' | null => (d > t ? 'up' : d < -t ? 'down' : null);

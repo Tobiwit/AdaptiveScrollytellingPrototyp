@@ -5,10 +5,7 @@ import type { SignalSnapshot, UnitMeta } from './types';
 const TrackerContext = createContext<SignalTracker | null>(null);
 const NewRunContext = createContext<(() => void) | null>(null);
 
-/**
- * Runs one SignalTracker per run. A new run swaps in a fresh tracker: units re-register
- * with it, and everything built on the tracker (insights, conclusions) starts over.
- */
+/** A new run swaps in a fresh tracker; units re-register and insights start over. */
 export function SignalsProvider({ children }: { children: ReactNode }) {
   const [tracker, setTracker] = useState(() => new SignalTracker());
   const newRun = useCallback(() => setTracker(new SignalTracker()), []);
@@ -24,7 +21,6 @@ export function SignalsProvider({ children }: { children: ReactNode }) {
   );
 }
 
-/** Starts a new run: all signals, insights and conclusions are reset. */
 export function useNewRun(): () => void {
   const newRun = useContext(NewRunContext);
   if (!newRun) throw new Error('needs a <SignalsProvider>');
@@ -37,13 +33,11 @@ export function useSignalTracker(): SignalTracker {
   return tracker;
 }
 
-/** Live snapshot of all signals (updates every tick). */
 export function useSignalSnapshot(): SignalSnapshot {
   const tracker = useSignalTracker();
   return useSyncExternalStore(tracker.subscribe, tracker.getSnapshot);
 }
 
-/** Registers an element as a tracked unit. Re-registers when its meta changes. */
 export function useTrackedUnit(ref: RefObject<HTMLElement | null>, meta: UnitMeta) {
   const tracker = useSignalTracker();
   const { unitId, kind, chapterId, sectionId, workId, label, words, hasImage, size } = meta;

@@ -1,12 +1,7 @@
 /**
- * Extracts a Google Arts & Culture story into a raw JSON snapshot.
- *
- *   npm run extract -- <out-name> <story-url> [<story-url> ...]
- *
- * The snapshot keeps every slide in order with its texts, captions, asset
- * links and image URLs, plus the metadata from each linked asset page.
- * It is deliberately "dumb": turning it into exhibition content happens in
- * build-content.ts so the scrape only has to run once.
+ * Scrapes GA&C stories into a raw snapshot (slides, captions, images, asset metadata).
+ *   npm run extract -- <out-name> <story-url> [...]
+ * Conversion happens in build-content.ts, so this only has to run once.
  */
 import { chromium, type Page } from 'playwright';
 import fs from 'node:fs';
@@ -22,9 +17,9 @@ export interface RawSlide {
   classes: string;
   assetHrefs: string[];
   images: string[];
-  /** Hidden caption of zoom slides: "<title> (<date>) by <artist>" + source line. */
+  /** hidden caption of zoom slides */
   caption: { line: string; source: string } | null;
-  /** Short visible captions of image slides (title + detail line). */
+  /** visible captions of image slides */
   shortCaptions: { title: string; detail: string }[];
   cards: RawCard[];
   paragraphs: string[];

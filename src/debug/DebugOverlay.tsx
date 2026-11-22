@@ -11,10 +11,7 @@ import styles from './DebugOverlay.module.css';
 
 const allowed = import.meta.env.DEV || new URLSearchParams(location.search).has('debug');
 
-/**
- * Temporary developer overlay that shows every tracked signal live.
- * Available in dev, or with ?debug in the URL. Shift+D toggles it.
- */
+/** Temporary. Dev or ?debug, Shift+D toggles. */
 export function DebugOverlay() {
   const [open, setOpen] = useState(() => new URLSearchParams(location.search).has('debug'));
   const [minimized, setMinimized] = useStoredFlag('signals-debug-minimized');
@@ -64,7 +61,6 @@ function Panel({ onClose, minimized, onMinimize, popups, onPopups }: PanelProps)
   const [copied, setCopied] = useState(false);
   const { session: s, focus } = snap;
 
-  // Outline the focused unit on the page.
   useEffect(() => {
     const el = s.focusUnitId ? tracker.getElement(s.focusUnitId) : null;
     el?.setAttribute('data-debug-focus', '');
@@ -268,8 +264,6 @@ function Focus({ u }: { u: UnitSnapshot }) {
     </>
   );
 }
-
-// ---- bits ------------------------------------------------------------------
 
 function Verdict({ v }: { v?: UnitVerdict }) {
   if (!v) return <span className={styles.muted}>…</span>;

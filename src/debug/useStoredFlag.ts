@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-/** A boolean kept in localStorage (per browser), with a fallback if storage is blocked. */
+/** Boolean in localStorage, still works if storage is blocked. */
 export function useStoredFlag(key: string, initial = false): [boolean, (v: boolean) => void] {
   const [value, setValue] = useState(() => {
     try {

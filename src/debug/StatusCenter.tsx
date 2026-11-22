@@ -6,7 +6,6 @@ import type { Conclusion } from '../conclusions/conclude';
 import { useStoredFlag } from './useStoredFlag';
 import styles from './StatusCenter.module.css';
 
-/** Compact view of the run conclusions (third layer), above the insight pop-ups. */
 export function StatusCenter() {
   const run = useRunConclusions();
   const [collapsed, setCollapsed] = useStoredFlag('signals-status-collapsed');

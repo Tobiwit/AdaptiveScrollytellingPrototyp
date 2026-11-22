@@ -5,15 +5,9 @@ import { ENGAGEMENT_RANK, type Engagement, type Judgement } from './types';
 const LOW: Engagement[] = ['skipped', 'glanced', 'skimmed'];
 
 /**
- * Judges how a visitor engaged with one unit, from its signals.
- *
- * 1. The level comes from dwell ÷ expected dwell (personal reading pace if known).
- * 2. Confidence starts from how far the ratio is from the nearest level boundary
- *    (0.5 right on a boundary, ~0.93 half a log-unit away).
- * 3. Other signals then raise or lower it: scroll speed vs the visitor's baseline,
- *    how much of the text the reading line passed, inactivity during the visit,
- *    and very short expected times (noisy). Lots of pointer time on the image
- *    upgrades the verdict to "intense".
+ * Level from dwell / expected dwell (personal pace if known). Confidence starts from
+ * the distance to the nearest level boundary, then scroll speed, text progress,
+ * idling and very short expected times push it up or down.
  */
 export function judgeUnit(u: UnitSnapshot): Judgement {
   const expected = u.expectedPersonalMs ?? u.expectedMs;
@@ -31,7 +25,7 @@ export function judgeUnit(u: UnitSnapshot): Judgement {
   const distance = Math.min(...bounds.map((b) => Math.abs(logR - Math.log(b))));
   let confidence = 1 - 0.5 * Math.exp(-distance / C.boundarySoftness);
 
-  // Pointer resting on the image for long → looked at it intensely.
+  // long pointer rest on the image → intense
   if (u.hasImage && u.hoverMs.image >= C.intenseImageHoverMs && ENGAGEMENT_RANK[engagement] < ENGAGEMENT_RANK.intense) {
     engagement = 'intense';
     confidence = Math.min(0.95, 0.6 + u.hoverMs.image / 20_000);

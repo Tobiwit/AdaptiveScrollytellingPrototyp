@@ -9,7 +9,6 @@ interface Props {
   chapter: Chapter;
   section: Section;
   work?: Work;
-  /** Words of text shown inside this unit. */
   words: number;
   hasImage?: boolean;
   size?: WorkSize;
@@ -18,10 +17,7 @@ interface Props {
   [data: `data-${string}`]: string | undefined;
 }
 
-/**
- * Wraps whatever represents a work (or a section's text) in a layout so the
- * signal tracker can attribute dwell, scrolling, pointer and clicks to it.
- */
+/** A unit for the signal tracker. */
 export function TrackedUnit({ kind, chapter, section, work, words, hasImage = false, size, className, children, ...rest }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const unitId = unitIdFor(section.id, work?.id);

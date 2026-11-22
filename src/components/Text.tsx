@@ -7,12 +7,11 @@ export function countWords(...texts: (string[] | string | undefined)[]): number 
     .reduce((n, t) => n + t.split(/\s+/).filter(Boolean).length, 0);
 }
 
-/** The paragraphs shown for a work in the given variant (falls back to the long text). */
+/** falls back to the long text */
 export function workTextFor(work: Work, variant: TextVariant): string[] {
   return work.text[variant].length ? work.text[variant] : work.text.long;
 }
 
-/** Paragraphs of text. Marked `data-part="text"` for the signal tracker. */
 export function Paragraphs({ text, className }: { text?: string[]; className?: string }) {
   if (!text?.length) return null;
   return (
@@ -24,7 +23,6 @@ export function Paragraphs({ text, className }: { text?: string[]; className?: s
   );
 }
 
-/** A work's text in the variant the presentation policy chose. */
 export function WorkText({ work, variant, className }: { work: Work; variant: TextVariant; className?: string }) {
   return <Paragraphs text={workTextFor(work, variant)} className={className} />;
 }

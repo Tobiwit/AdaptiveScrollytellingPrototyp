@@ -226,7 +226,7 @@
   color: #9aa0a8;
 }
 
-/* Top-left column: status center with the insight pop-ups below */
+/* top left: status center, pop-ups below */
 .leftColumn {
   position: fixed;
   top: 12px;

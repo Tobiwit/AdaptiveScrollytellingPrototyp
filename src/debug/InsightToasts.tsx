@@ -6,7 +6,6 @@ import styles from './InsightToasts.module.css';
 const SHOW_MS = 8000;
 const MAX = 6;
 
-/** Debug pop-ups (top left) for every insight the engine draws. */
 export function InsightToasts() {
   const engine = useInsightEngine();
   const [toasts, setToasts] = useState<{ insight: Insight; until: number }[]>([]);
