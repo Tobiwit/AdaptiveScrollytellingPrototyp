@@ -40,12 +40,12 @@ interface TextProps {
   textClassName?: string;
   before?: ReactNode;
   after?: ReactNode;
-  /** quotes don't fold */
-  foldable?: boolean;
+  /** quotes stay as written */
+  fixed?: boolean;
 }
 
-export function TrackedSectionText({ chapter, section, className, textClassName, before, after, foldable = true }: TextProps) {
-  const text = useAdaptiveText(section.text, section.context, foldable && 'teaser');
+export function TrackedSectionText({ chapter, section, className, textClassName, before, after, fixed = false }: TextProps) {
+  const text = useAdaptiveText(section, fixed ? 'fixed' : 'teaser');
   if (!countWords(section.text) && !before && !after) return null;
   return (
     <TrackedUnit kind="text" chapter={chapter} section={section} words={text.words} className={className}>

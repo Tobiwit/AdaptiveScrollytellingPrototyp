@@ -5,7 +5,7 @@ import type { PresentationPolicy, WorkPresentation } from '../presentation/polic
 import { AdaptationProvider, type Step } from '../adaptation/AdaptationContext';
 import { SignalsProvider } from '../signals/SignalsContext';
 import type { Exhibition, WorkSize } from '../schema/schema';
-import { makeLabContent, resolveModules, type Dimension } from './labContent';
+import { makeLabContent, type Dimension } from './labContent';
 import { useScrollAnchor } from './useScrollAnchor';
 import styles from './ModuleLab.module.css';
 
@@ -34,7 +34,7 @@ const exhibition = { id: 'lab', title: 'Modules' } as Exhibition;
 export function ModuleLab() {
   const [steps, setSteps] = useState(BASELINE);
   const [content, setContent] = useState(makeLabContent);
-  const modules = useMemo(() => resolveModules(content, steps.length), [content, steps.length]);
+  const modules = content.modules;
   const policy = useMemo(() => new FixedSizePolicy(SIZES[steps.size]), [steps.size]);
   const adaptation = useMemo(() => ({ length: steps.length, depth: steps.depth, presence: steps.presence }), [steps]);
   const isBaseline = DIMENSIONS.every((d) => steps[d.id] === 1);

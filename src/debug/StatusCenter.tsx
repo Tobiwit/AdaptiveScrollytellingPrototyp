@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useRunConclusions } from '../conclusions/ConclusionsContext';
 import { useNewRun } from '../signals/SignalsContext';
+import { useAdaptivePolicy, usePlannedSteps } from '../policy/PolicyContext';
+import { DIMENSIONS, STEP_LABELS } from '../policy/AdaptivePolicy';
 import type { Conclusion } from '../conclusions/conclude';
 import { useStoredFlag } from './useStoredFlag';
 import styles from './StatusCenter.module.css';
@@ -10,6 +12,8 @@ export function StatusCenter() {
   const run = useRunConclusions();
   const [collapsed, setCollapsed] = useStoredFlag('signals-status-collapsed');
   const newRun = useNewRun();
+  const policy = useAdaptivePolicy();
+  const planned = usePlannedSteps();
   const [waiting, setWaiting] = useState(false);
 
   // No scrolling behind the start screen.
@@ -52,9 +56,15 @@ export function StatusCenter() {
           ))}
         </ul>
       )}
-      <p className={styles.would}>
-        <span className={styles.muted}>would:</span> {run.wouldDo.join(' · ')}
-      </p>
+      {policy && planned ? (
+        <p className={styles.would}>
+          <span className={styles.muted}>next ({policy.status}):</span> {DIMENSIONS.map((d) => STEP_LABELS[d][planned[d]]).join(' · ')}
+        </p>
+      ) : (
+        <p className={styles.would}>
+          <span className={styles.muted}>would:</span> {run.wouldDo.join(' · ')}
+        </p>
+      )}
       {waiting &&
         createPortal(
           <button className={styles.gate} onClick={start} data-signals-ignore autoFocus>

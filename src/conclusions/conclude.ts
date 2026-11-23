@@ -1,10 +1,11 @@
 import { signalConfig } from '../signals/config';
+import { conclusionConfig as K } from './config';
 import type { SignalSnapshot } from '../signals/types';
 import type { Engagement, InsightState, UnitVerdict } from '../insights/types';
 
 /** Layer 3: standing beliefs about the run, from verdicts and session signals. */
 export type ConclusionId =
-  | 'appetite'
+  | 'textNeed'
   | 'context'
   | 'trend'
   | 'pace'
@@ -43,13 +44,7 @@ export interface RunConclusions {
   wouldDo: string[];
 }
 
-const SCORE: Record<Engagement, number> = { skipped: -1, glanced: -0.5, skimmed: -0.5, read: 0, looked: 0, lingered: 0.5, intense: 1 };
-/** weight halves every N verdicts */
-const HALF_LIFE = 6;
-// settle at SETTLE, stay settled down to UNSETTLE while the value holds
-const SETTLE = 0.7;
-const UNSETTLE = 0.55;
-const CALIBRATION = { verdicts: 6, activeMs: 60_000 };
+const SCORE = K.score as Record<Engagement, number>;
 
 export function concludeRun(signals: SignalSnapshot, insights: InsightState, prev: RunConclusions | null, hasTags: boolean): RunConclusions {
   const s = signals.session;
@@ -58,13 +53,13 @@ export function concludeRun(signals: SignalSnapshot, insights: InsightState, pre
   const unitById = new Map(signals.units.map((u) => [u.unitId, u]));
   const items: Omit<Conclusion, 'settled'>[] = [];
 
-  // Text appetite
+  // Text need
   const a = weighted(texts);
   const recentVsAll = texts.length >= 6 ? a.mean - mean(texts.map((v) => SCORE[v.engagement])) : 0;
   items.push({
-    id: 'appetite',
-    label: 'appetite',
-    value: texts.length ? tri(a.mean, -0.33, 0.33, ['short', 'standard', 'long']) : '–',
+    id: 'textNeed',
+    label: 'text need',
+    value: texts.length ? tri(a.mean, K.textNeed.short, K.textNeed.long, ['short', 'standard', 'long']) : '–',
     meter: texts.length ? (a.mean + 1) / 2 : null,
     confidence: evidence(a.weight) * (1 - 0.5 * a.std),
     basis: texts.length,
@@ -79,7 +74,7 @@ export function concludeRun(signals: SignalSnapshot, insights: InsightState, pre
   items.push({
     id: 'context',
     label: 'context',
-    value: !ctx.n ? '–' : ctx.mean < -0.33 || rel < -0.4 ? 'low' : ctx.mean > 0.1 && rel > -0.1 ? 'high' : 'medium',
+    value: !ctx.n ? '–' : ctx.mean < K.context.low || rel < K.context.lowVsWorks ? 'low' : ctx.mean > K.context.high && rel > K.context.highVsWorks ? 'high' : 'medium',
     meter: ctx.n ? (ctx.mean + 1) / 2 : null,
     confidence: evidence(ctx.weight) * (1 - 0.5 * ctx.std),
     basis: ctx.n,
@@ -102,7 +97,7 @@ export function concludeRun(signals: SignalSnapshot, insights: InsightState, pre
   items.push({
     id: 'trend',
     label: 'trend',
-    value: verdicts.length < 8 ? '–' : tri(trendScore, -0.25, 0.25, ['falling', 'stable', 'rising']),
+    value: verdicts.length < 8 ? '–' : tri(trendScore, K.trend.falling, K.trend.rising, ['falling', 'stable', 'rising']),
     meter: verdicts.length < 8 ? null : clamp((trendScore + 1) / 2),
     confidence: verdicts.length < 8 ? 0 : evidence(verdicts.length / 2) * Math.min(1, 0.4 + Math.abs(trendScore)),
     basis: verdicts.length,
@@ -129,11 +124,11 @@ export function concludeRun(signals: SignalSnapshot, insights: InsightState, pre
   const hoverImg = sum(signals.units.map((u) => u.hoverMs.image));
   const hoverTxt = sum(signals.units.map((u) => u.hoverMs.text));
   const ptr = pointerOk && hoverImg + hoverTxt > 3000 ? (hoverImg - hoverTxt) / (hoverImg + hoverTxt) : 0;
-  const visual = clamp((img.n && a.n ? (img.mean - a.mean) / 2 : 0) + 0.5 * ptr, -1, 1);
+  const visual = clamp((img.n && a.n ? (img.mean - a.mean) / 2 : 0) + K.visual.pointerWeight * ptr, -1, 1);
   items.push({
     id: 'visual',
     label: 'visual',
-    value: img.n + a.n < 3 ? '–' : tri(visual, -0.25, 0.25, ['text-led', 'balanced', 'image-led']),
+    value: img.n + a.n < 3 ? '–' : tri(visual, K.visual.textLed, K.visual.imageLed, ['text-led', 'balanced', 'image-led']),
     meter: img.n + a.n < 3 ? null : (visual + 1) / 2,
     confidence: Math.min(0.9, evidence(img.weight + a.weight)),
     basis: img.n + a.n,
@@ -260,11 +255,11 @@ export function concludeRun(signals: SignalSnapshot, insights: InsightState, pre
   // Settling with hysteresis.
   const settled: Conclusion[] = items.map((c) => {
     const was = prev?.items.find((p) => p.id === c.id);
-    const ok = c.value !== '–' && !c.waiting && (c.confidence >= SETTLE || (!!was?.settled && was.value === c.value && c.confidence >= UNSETTLE));
+    const ok = c.value !== '–' && !c.waiting && (c.confidence >= K.settle || (!!was?.settled && was.value === c.value && c.confidence >= K.unsettle));
     return { ...c, confidence: clamp(c.confidence), settled: ok };
   });
 
-  const calibrated = verdicts.length >= CALIBRATION.verdicts && s.activeMs >= CALIBRATION.activeMs;
+  const calibrated = verdicts.length >= K.calibration.verdicts && s.activeMs >= K.calibration.activeMs;
   return { items: settled, workScores, calibrated, wouldDo: preview(settled, calibrated, top.length ? workLabels[top[0][0]] : null, top[0]?.[1] ?? 0) };
 }
 
@@ -274,9 +269,9 @@ function preview(items: Conclusion[], calibrated: boolean, topLabel: string | nu
   if (get('presence').value === 'away') return ['pause: visitor away'];
   if (!calibrated) return ['calibrating, no adaptation yet'];
   const out: string[] = [];
-  if (is('appetite', 'short') && get('trend').value !== 'rising') out.push('suggest shorter texts at next chapter');
-  if (is('appetite', 'long')) out.push('offer longer texts at next chapter');
-  if (is('context', 'high') && get('appetite').value !== 'short') out.push('offer the context layer');
+  if (is('textNeed', 'short') && get('trend').value !== 'rising') out.push('suggest shorter texts at next chapter');
+  if (is('textNeed', 'long')) out.push('offer longer texts at next chapter');
+  if (is('context', 'high') && get('textNeed').value !== 'short') out.push('offer the context layer');
   if (is('context', 'low')) out.push('collapse context passages');
   if (is('strain', 'likely')) out.push('suggest simpler language');
   if (is('visual', 'image-led')) out.push('enlarge upcoming images');
@@ -286,7 +281,7 @@ function preview(items: Conclusion[], calibrated: boolean, topLabel: string | nu
 
 function weighted(vs: UnitVerdict[]) {
   const n = vs.length;
-  const w = vs.map((v, i) => v.confidence * 0.5 ** ((n - 1 - i) / HALF_LIFE));
+  const w = vs.map((v, i) => v.confidence * 0.5 ** ((n - 1 - i) / K.halfLife));
   const weight = sum(w);
   const m = weight ? sum(vs.map((v, i) => w[i] * SCORE[v.engagement])) / weight : 0;
   const variance = weight ? sum(vs.map((v, i) => w[i] * (SCORE[v.engagement] - m) ** 2)) / weight : 0;

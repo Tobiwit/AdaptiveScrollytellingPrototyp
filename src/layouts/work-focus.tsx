@@ -68,7 +68,7 @@ interface StepProps {
 
 function Step({ work, chapter, section, onActive, inline }: StepProps) {
   const { size, textVariant } = useWorkPresentation(work.id);
-  const text = useAdaptiveText(workTextFor(work, textVariant), work.context, 'hide');
+  const text = useAdaptiveText({ text: workTextFor(work, textVariant), lengths: work.lengths, context: work.context }, 'hide');
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

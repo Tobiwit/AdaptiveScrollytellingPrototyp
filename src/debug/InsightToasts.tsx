@@ -1,21 +1,43 @@
 import { useEffect, useState } from 'react';
 import { useInsightEngine } from '../insights/InsightsContext';
 import { ENGAGEMENT_RANK, type Insight } from '../insights/types';
+import { useAdaptivePolicy } from '../policy/PolicyContext';
 import styles from './InsightToasts.module.css';
 
 const SHOW_MS = 8000;
+const ADAPT_SHOW_MS = 12_000;
 const MAX = 6;
 
-export function InsightToasts() {
+interface Toast {
+  key: string;
+  message: string;
+  confidence: number;
+  evidence: string[];
+  tone: string;
+  until: number;
+}
+
+export function InsightToasts({ onlyAdaptations = false }: { onlyAdaptations?: boolean }) {
   const engine = useInsightEngine();
-  const [toasts, setToasts] = useState<{ insight: Insight; until: number }[]>([]);
+  const policy = useAdaptivePolicy();
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const push = (t: Toast) => setToasts((ts) => [...ts, t].slice(-MAX));
 
   useEffect(() => {
     setToasts([]); // new run
-    return engine.insights.subscribe((insight) =>
-      setToasts((ts) => [...ts, { insight, until: Date.now() + SHOW_MS }].slice(-MAX)),
+    if (onlyAdaptations) return;
+    return engine.insights.subscribe((i) =>
+      push({ key: `i${i.id}`, message: i.message, confidence: i.confidence, evidence: i.evidence, tone: tone(i), until: Date.now() + SHOW_MS }),
     );
-  }, [engine]);
+  }, [engine, onlyAdaptations]);
+
+  useEffect(
+    () =>
+      policy?.decisions.subscribe((d) =>
+        push({ key: `a${d.id}`, message: d.message, confidence: d.confidence, evidence: d.evidence, tone: 'adapt', until: Date.now() + ADAPT_SHOW_MS }),
+      ),
+    [policy],
+  );
 
   useEffect(() => {
     if (!toasts.length) return;
@@ -25,15 +47,15 @@ export function InsightToasts() {
 
   return (
     <ol className={styles.stack} data-signals-ignore aria-live="polite" aria-label="Insights">
-      {toasts.map(({ insight: i }) => (
-        <li key={i.id} className={styles.toast} data-tone={tone(i)}>
+      {toasts.map((t) => (
+        <li key={t.key} className={styles.toast} data-tone={t.tone}>
           <div className={styles.top}>
-            <span className={styles.message}>{i.message}</span>
+            <span className={styles.message}>{t.message}</span>
             <span className={styles.conf} title="confidence">
-              {Math.round(i.confidence * 100)}%
+              {Math.round(t.confidence * 100)}%
             </span>
           </div>
-          {i.evidence.length > 0 && <div className={styles.evidence}>{i.evidence.join(' · ')}</div>}
+          {t.evidence.length > 0 && <div className={styles.evidence}>{t.evidence.join(' · ')}</div>}
         </li>
       ))}
     </ol>

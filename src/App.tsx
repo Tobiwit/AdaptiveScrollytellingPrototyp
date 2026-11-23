@@ -8,15 +8,15 @@ import { SignalsProvider } from './signals/SignalsContext';
 import { DebugOverlay } from './debug/DebugOverlay';
 import { InsightsProvider } from './insights/InsightsContext';
 import { ConclusionsProvider } from './conclusions/ConclusionsContext';
+import { AdaptivePolicy } from './policy/AdaptivePolicy';
+import { ChapterAdaptation, PolicyDriver, PolicyProvider } from './policy/PolicyContext';
 
 export function App({ exhibition, works }: LoadedExhibition) {
-  // Adaptation seam: swap StaticPolicy for an AdaptivePolicy here.
-  const policy = useMemo(() => new StaticPolicy(works, exhibition.defaults), [works, exhibition]);
+  const adaptive = useMemo(() => new URLSearchParams(location.search).has('adaptive'), []);
+  const adaptivePolicy = useMemo(() => (adaptive ? AdaptivePolicy.for(exhibition) : null), [adaptive, exhibition]);
+  const policy = useMemo(() => adaptivePolicy ?? new StaticPolicy(works, exhibition.defaults), [adaptivePolicy, works, exhibition]);
   const hasTags = useMemo(() => [...works.values()].some((w) => Object.keys(w.tags).length > 0), [works]);
-  const chapterTitles = useMemo(
-    () => Object.fromEntries(exhibition.chapters.map((c) => [c.id, c.title])),
-    [exhibition],
-  );
+  const chapterTitles = useMemo(() => Object.fromEntries(exhibition.chapters.map((c) => [c.id, c.title])), [exhibition]);
 
   useEffect(() => {
     document.title = exhibition.title;
@@ -28,44 +28,49 @@ export function App({ exhibition, works }: LoadedExhibition) {
 
   return (
     <PresentationProvider policy={policy}>
-      <SignalsProvider>
-        <a className="skip-link" href="#main">
-          Skip to content
-        </a>
-        <ProgressNav chapters={exhibition.chapters} />
-        <main id="main">
-          {exhibition.chapters.map((chapter) => (
-            <div key={chapter.id} id={chapter.id} className="chapter" data-chapter={chapter.id}>
-              {chapter.sections.map((section) => {
-                const layout = layouts[section.layout];
-                const Component = layout.component;
-                return (
-                  <section
-                    key={section.id}
-                    id={section.id}
-                    className="section"
-                    data-layout={section.layout}
-                    aria-label={section.title ?? chapter.title}
-                  >
-                    <Component
-                      exhibition={exhibition}
-                      chapter={chapter}
-                      section={section}
-                      works={section.works.map((id) => works.get(id)!)}
-                      options={layout.options.parse(section.options)}
-                    />
-                  </section>
-                );
-              })}
-            </div>
-          ))}
-        </main>
-        <InsightsProvider chapterTitles={chapterTitles}>
-          <ConclusionsProvider hasTags={hasTags}>
-            <DebugOverlay />
-          </ConclusionsProvider>
-        </InsightsProvider>
-      </SignalsProvider>
+      <PolicyProvider policy={adaptivePolicy}>
+        <SignalsProvider>
+          <a className="skip-link" href="#main">
+            Skip to content
+          </a>
+          <ProgressNav chapters={exhibition.chapters} />
+          <main id="main">
+            {exhibition.chapters.map((chapter) => (
+              <ChapterAdaptation key={chapter.id} chapterId={chapter.id}>
+                <div id={chapter.id} className="chapter" data-chapter={chapter.id}>
+                  {chapter.sections.map((section) => {
+                    const layout = layouts[section.layout];
+                    const Component = layout.component;
+                    return (
+                      <section
+                        key={section.id}
+                        id={section.id}
+                        className="section"
+                        data-layout={section.layout}
+                        aria-label={section.title ?? chapter.title}
+                      >
+                        <Component
+                          exhibition={exhibition}
+                          chapter={chapter}
+                          section={section}
+                          works={section.works.map((id) => works.get(id)!)}
+                          options={layout.options.parse(section.options)}
+                        />
+                      </section>
+                    );
+                  })}
+                </div>
+              </ChapterAdaptation>
+            ))}
+          </main>
+          <InsightsProvider chapterTitles={chapterTitles}>
+            <ConclusionsProvider hasTags={hasTags}>
+              <PolicyDriver />
+              <DebugOverlay />
+            </ConclusionsProvider>
+          </InsightsProvider>
+        </SignalsProvider>
+      </PolicyProvider>
     </PresentationProvider>
   );
 }

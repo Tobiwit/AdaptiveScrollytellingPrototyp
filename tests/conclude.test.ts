@@ -39,28 +39,28 @@ function insights(engagements: Engagement[], kind: 'text' | 'work' = 'text'): In
 const item = (r: ReturnType<typeof concludeRun>, id: string) => r.items.find((c) => c.id === id)!;
 
 describe('concludeRun', () => {
-  it('concludes a short text appetite from mostly skimmed texts and settles on it', () => {
+  it('concludes a short text need from mostly skimmed texts and settles on it', () => {
     const r = concludeRun(signals(), insights(['skimmed', 'skimmed', 'skipped', 'skimmed', 'read', 'skimmed', 'skimmed', 'skipped']), null, false);
-    expect(item(r, 'appetite').value).toBe('short');
-    expect(item(r, 'appetite').settled).toBe(true);
+    expect(item(r, 'textNeed').value).toBe('short');
+    expect(item(r, 'textNeed').settled).toBe(true);
     expect(r.wouldDo).toContain('suggest shorter texts at next chapter');
   });
 
   it('does not settle on thin evidence', () => {
     const r = concludeRun(signals(), insights(['skimmed']), null, false);
-    expect(item(r, 'appetite').settled).toBe(false);
+    expect(item(r, 'textNeed').settled).toBe(false);
   });
 
   it('stays settled while the value holds even if confidence dips (hysteresis)', () => {
     const strong = concludeRun(signals(), insights(['read', 'read', 'read', 'read', 'read', 'read', 'read', 'read']), null, false);
-    expect(item(strong, 'appetite').settled).toBe(true);
+    expect(item(strong, 'textNeed').settled).toBe(true);
     // Mixed evidence: still "standard" but less sure.
     const mixed = concludeRun(signals(), insights(['skipped', 'intense', 'read', 'skipped', 'intense', 'read', 'skimmed', 'lingered']), strong, false);
     const fresh = concludeRun(signals(), insights(['skipped', 'intense', 'read', 'skipped', 'intense', 'read', 'skimmed', 'lingered']), null, false);
-    expect(item(mixed, 'appetite').value).toBe('standard');
-    expect(item(fresh, 'appetite').confidence).toBeLessThan(0.7);
-    expect(item(mixed, 'appetite').settled).toBe(true);
-    expect(item(fresh, 'appetite').settled).toBe(false);
+    expect(item(mixed, 'textNeed').value).toBe('standard');
+    expect(item(fresh, 'textNeed').confidence).toBeLessThan(0.7);
+    expect(item(mixed, 'textNeed').settled).toBe(true);
+    expect(item(fresh, 'textNeed').settled).toBe(false);
   });
 
   it('does not adapt before calibration', () => {

@@ -50,7 +50,7 @@ function Gallery({ chapter, section, works }: LayoutProps<z.infer<typeof Options
 
 function Item({ work, chapter, section }: { work: Work; chapter: Chapter; section: Section }) {
   const { size, textVariant } = useWorkPresentation(work.id);
-  const text = useAdaptiveText(workTextFor(work, textVariant), work.context, 'hide');
+  const text = useAdaptiveText({ text: workTextFor(work, textVariant), lengths: work.lengths, context: work.context }, 'hide');
   return (
     <TrackedUnit
       kind="work"

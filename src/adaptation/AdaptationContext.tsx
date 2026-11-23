@@ -3,7 +3,6 @@ import { createContext, useContext, type ReactNode } from 'react';
 /** 1 = as authored */
 export type Step = 0 | 1 | 2;
 
-// Length is resolved in the content (which text gets passed in), so layouts don't read it.
 // Image size is per work and comes from the PresentationPolicy.
 export interface Adaptation {
   length: Step;

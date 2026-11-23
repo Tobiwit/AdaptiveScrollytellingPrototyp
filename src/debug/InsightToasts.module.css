@@ -37,6 +37,7 @@
 .toast[data-tone='warn'] { border-color: #d0604a; }
 .toast[data-tone='chapter'] { border-color: #b48ce0; }
 .toast[data-tone='session'] { border-color: #8a9099; }
+.toast[data-tone='adapt'] { border-color: #f0f0f0; }
 
 .top {
   display: flex;

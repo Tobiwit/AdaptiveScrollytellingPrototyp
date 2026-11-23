@@ -28,6 +28,7 @@ export const Work = z.object({
     short: Paragraphs,
     long: Paragraphs,
   }),
+  lengths: z.object({ short: Paragraphs.optional(), long: Paragraphs.optional() }).optional(),
   /** only shown at depth "deep" */
   context: Paragraphs.optional(),
   /** for similarity later */
@@ -43,6 +44,7 @@ export const Section = z.object({
   kicker: z.string().optional(),
   title: z.string().optional(),
   text: Paragraphs.optional(),
+  lengths: z.object({ short: Paragraphs.optional(), long: Paragraphs.optional() }).optional(),
   /** only shown at depth "deep" */
   context: Paragraphs.optional(),
   attribution: z.string().optional(),

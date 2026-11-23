@@ -10,15 +10,26 @@ import './styles/base.css';
 import { App } from './App';
 import { getExhibitionId } from './config';
 import { loadExhibition } from './content/loadExhibition';
+import { startTuning } from './tuning/tuning';
 
 const root = createRoot(document.getElementById('root')!);
+startTuning();
 
-// /modules is the module lab
-if (location.pathname.replace(/\/+$/, '') === '/modules') {
+const path = location.pathname.replace(/\/+$/, '');
+
+if (path === '/modules') {
   import('./lab/ModuleLab').then(({ ModuleLab }) =>
     root.render(
       <StrictMode>
         <ModuleLab />
+      </StrictMode>,
+    ),
+  );
+} else if (path === '/tuning') {
+  import('./tuning/TuningPage').then(({ TuningPage }) =>
+    root.render(
+      <StrictMode>
+        <TuningPage />
       </StrictMode>,
     ),
   );

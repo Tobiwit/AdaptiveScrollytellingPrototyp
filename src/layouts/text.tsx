@@ -14,7 +14,7 @@ function TextBlock({ chapter, section, options }: LayoutProps<z.infer<typeof Opt
       <Reveal className={styles.wrap}>
         <figure className={styles.quote}>
           <blockquote>
-            <TrackedSectionText chapter={chapter} section={section} foldable={false} />
+            <TrackedSectionText chapter={chapter} section={section} fixed />
           </blockquote>
           {section.attribution && <figcaption>{section.attribution}</figcaption>}
         </figure>

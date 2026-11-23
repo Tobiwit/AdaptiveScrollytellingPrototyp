@@ -1,5 +1,4 @@
 import type { Chapter, Section, Work } from '../schema/schema';
-import type { Step } from '../adaptation/AdaptationContext';
 
 // words per length step; each text gets a random length in its range
 const RANGES = {
@@ -32,26 +31,18 @@ export interface LabModule {
 
 type Variants = [string[], string[], string[]];
 
-interface RawSection extends Omit<Section, 'text'> {
-  text?: Variants;
-}
-interface RawWork extends Omit<Work, 'text'> {
-  text: Variants;
-}
-interface RawModule extends Omit<LabModule, 'section' | 'works'> {
-  section: RawSection;
-  works: RawWork[];
-}
-
 export interface LabContent {
   chapter: Chapter;
-  modules: RawModule[];
+  modules: LabModule[];
 }
+
+const lengths = (v: Variants) => ({ short: v[0], long: v[2] });
 
 export function makeLabContent(): LabContent {
   let n = 0;
-  const work = (ratio: [number, number]): RawWork => {
+  const work = (ratio: [number, number]): Work => {
     n++;
+    const text = variants('work');
     return {
       id: `w${n}`,
       title: title(),
@@ -60,23 +51,25 @@ export function makeLabContent(): LabContent {
       institution: 'Collection Placeholder',
       headline: n % 2 ? undefined : title(),
       image: { src: placeholder(ratio, n), alt: `Placeholder image ${n}`, credit: 'Placeholder' },
-      text: variants('work'),
+      text: { short: [], long: text[1] },
+      lengths: lengths(text),
       context: [lorem(rand(...CONTEXT_RANGE))],
       tags: {},
       size: 'M',
     };
   };
-  const section = (id: string, layout: string, extra: Partial<RawSection> = {}): RawSection => ({
+  const section = (id: string, layout: string, extra: Partial<Section> = {}, text: Variants | null = variants('section')): Section => ({
     id,
     layout,
-    text: variants('section'),
+    text: text?.[1],
+    lengths: text ? lengths(text) : undefined,
     context: [lorem(rand(...CONTEXT_RANGE))],
     works: [],
     options: {},
     ...extra,
   });
 
-  const modules: RawModule[] = [
+  const modules: LabModule[] = [
     {
       key: 'chapter-intro',
       name: 'chapter-intro',
@@ -100,11 +93,7 @@ export function makeLabContent(): LabContent {
       options: { style: 'quote' },
       note: 'quotes stay as written',
       affects: [],
-      section: section('lab-quote', 'text', {
-        text: same([lorem(rand(...QUOTE_RANGE))]),
-        context: undefined,
-        attribution: 'Artist Name, letter, 1854',
-      }),
+      section: section('lab-quote', 'text', { text: [lorem(rand(...QUOTE_RANGE))], context: undefined, attribution: 'Artist Name, letter, 1854' }, null),
       works: [],
     },
     {
@@ -112,7 +101,7 @@ export function makeLabContent(): LabContent {
       name: 'work-focus',
       layout: 'work-focus',
       affects: ['length', 'depth', 'size', 'presence'],
-      section: section('lab-focus', 'work-focus', { text: undefined, context: undefined }),
+      section: section('lab-focus', 'work-focus', { context: undefined }, null),
       works: [work([3, 4]), work([4, 3]), work([2, 3])],
     },
     {
@@ -136,21 +125,9 @@ export function makeLabContent(): LabContent {
   for (const m of modules) m.section.works = m.works.map((w) => w.id);
 
   return {
-    chapter: { id: 'lab', title: 'Module lab', sections: modules.map((m) => resolveSection(m.section, 1)) },
+    chapter: { id: 'lab', title: 'Module lab', sections: modules.map((m) => m.section) },
     modules,
   };
-}
-
-export function resolveModules(content: LabContent, length: Step): LabModule[] {
-  return content.modules.map((m) => ({
-    ...m,
-    section: resolveSection(m.section, length),
-    works: m.works.map((w) => ({ ...w, text: { short: [], long: w.text[length] } })),
-  }));
-}
-
-function resolveSection(s: RawSection, length: Step): Section {
-  return { ...s, text: s.text?.[length] };
 }
 
 const WORDS = (
@@ -194,9 +171,6 @@ function variants(kind: keyof typeof RANGES): Variants {
   return RANGES[kind].map(([min, max]) => paragraphs(rand(min, max))) as Variants;
 }
 
-function same(text: string[]): Variants {
-  return [text, text, text];
-}
 
 function title() {
   return cap(Array.from({ length: rand(2, 4) }, pick).join(' '));

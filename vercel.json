@@ -3,7 +3,10 @@
   "framework": "vite",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "rewrites": [{ "source": "/modules", "destination": "/index.html" }],
+  "rewrites": [
+    { "source": "/modules", "destination": "/index.html" },
+    { "source": "/tuning", "destination": "/index.html" }
+  ],
   "headers": [
     {
       "source": "/(.*)",

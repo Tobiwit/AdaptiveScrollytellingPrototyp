@@ -7,6 +7,7 @@ import type { UnitVerdict } from '../insights/types';
 import { InsightToasts } from './InsightToasts';
 import { StatusCenter } from './StatusCenter';
 import { useStoredFlag } from './useStoredFlag';
+import { useAdaptivePolicy } from '../policy/PolicyContext';
 import styles from './DebugOverlay.module.css';
 
 const allowed = import.meta.env.DEV || new URLSearchParams(location.search).has('debug');
@@ -16,6 +17,7 @@ export function DebugOverlay() {
   const [open, setOpen] = useState(() => new URLSearchParams(location.search).has('debug'));
   const [minimized, setMinimized] = useStoredFlag('signals-debug-minimized');
   const [popups, setPopups] = useStoredFlag('signals-debug-popups', true);
+  const adaptive = !!useAdaptivePolicy();
 
   useEffect(() => {
     if (!allowed) return;
@@ -26,7 +28,13 @@ export function DebugOverlay() {
     return () => removeEventListener('keydown', onKey);
   }, []);
 
-  if (!allowed || !open) return null;
+  if (!allowed || !open) {
+    return adaptive ? (
+      <div className={styles.leftColumn} data-signals-ignore>
+        <InsightToasts onlyAdaptations />
+      </div>
+    ) : null;
+  }
   return (
     <>
       <div className={styles.leftColumn} data-signals-ignore>
