@@ -8,7 +8,7 @@ import { InsightToasts } from './InsightToasts';
 import { StatusCenter } from './StatusCenter';
 import { useStoredFlag } from './useStoredFlag';
 import { useAdaptivePolicy } from '../policy/PolicyContext';
-import { useRecorder } from '../recording/RecorderContext';
+import { useRecorder, useUploadStatus } from '../recording/RecorderContext';
 import { downloadRun } from '../recording/recorder';
 import styles from './DebugOverlay.module.css';
 
@@ -67,6 +67,7 @@ function Panel({ onClose, minimized, onMinimize, popups, onPopups }: PanelProps)
   const tracker = useSignalTracker();
   const insight = useInsightState();
   const recorder = useRecorder();
+  const upload = useUploadStatus();
   const [seenOnly, setSeenOnly] = useState(true);
   const { session: s, focus } = snap;
 
@@ -117,6 +118,7 @@ function Panel({ onClose, minimized, onMinimize, popups, onPopups }: PanelProps)
             {state}
           </span>
           <span className={styles.grow} />
+          {upload && <span className={styles.muted} title={upload.at ? new Date(upload.at).toLocaleTimeString() : ''}>{upload.state === 'idle' ? 'not uploaded yet' : upload.state}</span>}
           {recorder && <button onClick={() => downloadRun(recorder.toJSON())}>download run</button>}
           <button onClick={onMinimize} aria-label="Minimise" title="Minimise">
             –

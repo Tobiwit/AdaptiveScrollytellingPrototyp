@@ -9,3 +9,9 @@ assets/
 # Raw scraper output
 scripts/.snapshot/
 .claude/
+
+# Study data and secrets
+runs/
+exports/
+.env.local
+.env.example

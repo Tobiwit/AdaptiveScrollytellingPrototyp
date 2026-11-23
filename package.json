@@ -10,7 +10,9 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "extract": "tsx scripts/extract-gac.ts",
-    "build-content": "tsx scripts/build-content.ts"
+    "build-content": "tsx scripts/build-content.ts",
+    "pull-runs": "tsx --env-file-if-exists=.env.local scripts/pull-runs.ts",
+    "export-runs": "tsx scripts/export-runs.ts"
   },
   "dependencies": {
     "@fontsource/instrument-sans": "^5.3.0",
