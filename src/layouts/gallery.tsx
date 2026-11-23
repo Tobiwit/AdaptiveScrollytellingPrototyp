@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { z } from 'zod';
 import { defineLayout, type LayoutProps } from './types';
 import { WorkFigure } from '../components/WorkFigure';
@@ -20,6 +20,7 @@ const SUPPORTING_COUNT = 2;
 function Gallery({ chapter, section, works }: LayoutProps<z.infer<typeof Options>>) {
   const { presence } = useAdaptation();
   const [all, setAll] = useState(false);
+  useEffect(() => setAll(false), [presence]);
   // TODO: use the visitor's top works (workScores)
   const shown = presence === 0 && !all ? works.slice(0, SUPPORTING_COUNT) : works;
   const hidden = works.length - shown.length;
@@ -62,7 +63,7 @@ function Item({ work, chapter, section }: { work: Work; chapter: Chapter; sectio
       className={styles.item}
       data-size={size}
     >
-      <Reveal>
+      <Reveal className={styles.inner}>
         <WorkFigure work={work} size={size} />
         <div className={styles.text}>
           <AdaptiveText state={text} className="prose" moreLabel="Read text" />

@@ -7,9 +7,10 @@
   transition: grid-template-columns var(--dur-slow) var(--ease);
 }
 
-.root[data-size='S'] { --stage: 0.8fr; }
-.root[data-size='M'] { --stage: 1.2fr; }
-.root[data-size='L'] { --stage: 1.7fr; }
+/* portrait images are height-bound, so size sets the height too */
+.root[data-size='S'] { --stage: 0.8fr; --img-h: 60vh; }
+.root[data-size='M'] { --stage: 1.2fr; --img-h: 80vh; }
+.root[data-size='L'] { --stage: 1.7fr; --img-h: 90vh; }
 
 .root[data-side='right'] .stage { order: 2; }
 
@@ -19,9 +20,13 @@
 
 .sticky {
   position: sticky;
-  top: 10vh;
-  height: 80vh;
+  top: 5vh;
+  height: 90vh;
   display: grid;
+}
+
+.stageItem img {
+  max-height: var(--img-h);
 }
 
 /* All images share one cell and cross-fade. */
@@ -93,14 +98,15 @@
 
 /* leading */
 .root[data-presence='2'] {
-  grid-template-columns: minmax(0, var(--stage)) minmax(0, 0.55fr);
+  grid-template-columns: minmax(0, var(--stage)) minmax(20rem, 0.55fr);
 }
+
+.root[data-presence='2'][data-size='S'] { --img-h: 80vh; }
+.root[data-presence='2'][data-size='M'] { --img-h: 92vh; }
+.root[data-presence='2'][data-size='L'] { --img-h: 100vh; }
 
 .root[data-presence='2'] .sticky {
   top: 0;
   height: 100vh;
 }
 
-.root[data-presence='2'] .stageItem img {
-  max-height: 96vh;
-}
