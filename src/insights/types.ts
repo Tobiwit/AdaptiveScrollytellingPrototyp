@@ -34,6 +34,8 @@ export interface UnitVerdict extends Judgement {
   label: string;
   /** ms since session start. */
   at: number;
+  /** passed without ever being in focus, not from judgeUnit() */
+  passed?: true;
 }
 
 export type InsightKind =

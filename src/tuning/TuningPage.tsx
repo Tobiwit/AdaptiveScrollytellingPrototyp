@@ -3,6 +3,8 @@ import { DEFAULTS, getAt, loadOverrides, saveOverrides, type Leaf, type Override
 import { CONCLUSION_VALUES, type Dimension } from '../policy/config';
 import { DIMENSIONS } from '../policy/AdaptivePolicy';
 import type { ConclusionId } from '../conclusions/conclude';
+import { loadLastRun } from '../recording/RecorderContext';
+import { downloadRun } from '../recording/recorder';
 import styles from './TuningPage.module.css';
 
 const DIM_LABELS: Record<Dimension, string> = { length: 'Text length', depth: 'Context depth', size: 'Image size', presence: 'Image presence' };
@@ -73,6 +75,7 @@ export function TuningPage() {
         <h1>Tuning</h1>
         <a href="/?adaptive&debug">exhibition (adaptive)</a>
         <span className={styles.grow} />
+        <LastRun />
         <button type="button" onClick={() => navigator.clipboard.writeText(JSON.stringify(overrides, null, 2))}>
           Copy JSON
         </button>
@@ -115,6 +118,17 @@ export function TuningPage() {
         </tbody>
       </table>
     </div>
+  );
+}
+
+function LastRun() {
+  const [run] = useState(loadLastRun);
+  if (!run) return null;
+  const when = new Date(run.meta.startedAt).toLocaleString();
+  return (
+    <button type="button" onClick={() => downloadRun(run)} title={`${run.meta.condition}, started ${when}`}>
+      Last run ↓
+    </button>
   );
 }
 

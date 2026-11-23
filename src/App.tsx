@@ -10,11 +10,21 @@ import { InsightsProvider } from './insights/InsightsContext';
 import { ConclusionsProvider } from './conclusions/ConclusionsContext';
 import { AdaptivePolicy } from './policy/AdaptivePolicy';
 import { ChapterAdaptation, PolicyDriver, PolicyProvider } from './policy/PolicyContext';
+import { RecorderProvider } from './recording/RecorderContext';
+import { hashContent } from './recording/recorder';
 
 export function App({ exhibition, works }: LoadedExhibition) {
   const adaptive = useMemo(() => new URLSearchParams(location.search).has('adaptive'), []);
   const adaptivePolicy = useMemo(() => (adaptive ? AdaptivePolicy.for(exhibition) : null), [adaptive, exhibition]);
   const policy = useMemo(() => adaptivePolicy ?? new StaticPolicy(works, exhibition.defaults), [adaptivePolicy, works, exhibition]);
+  const runMeta = useMemo(
+    () => ({
+      condition: adaptive ? ('adaptive' as const) : ('static' as const),
+      exhibition: exhibition.id,
+      contentHash: hashContent({ exhibition, works: [...works.values()] }),
+    }),
+    [adaptive, exhibition, works],
+  );
   const hasTags = useMemo(() => [...works.values()].some((w) => Object.keys(w.tags).length > 0), [works]);
   const chapterTitles = useMemo(() => Object.fromEntries(exhibition.chapters.map((c) => [c.id, c.title])), [exhibition]);
 
@@ -65,8 +75,10 @@ export function App({ exhibition, works }: LoadedExhibition) {
           </main>
           <InsightsProvider chapterTitles={chapterTitles}>
             <ConclusionsProvider hasTags={hasTags}>
-              <PolicyDriver />
-              <DebugOverlay />
+              <RecorderProvider meta={runMeta}>
+                <PolicyDriver />
+                <DebugOverlay />
+              </RecorderProvider>
             </ConclusionsProvider>
           </InsightsProvider>
         </SignalsProvider>

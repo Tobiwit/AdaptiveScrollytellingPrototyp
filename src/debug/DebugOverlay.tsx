@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react';
 import { useSignalSnapshot, useSignalTracker } from '../signals/SignalsContext';
 import { signalConfig } from '../signals/config';
 import type { SignalEvent, UnitSnapshot } from '../signals/types';
-import { useInsightEngine, useInsightState } from '../insights/InsightsContext';
+import { useInsightState } from '../insights/InsightsContext';
 import type { UnitVerdict } from '../insights/types';
 import { InsightToasts } from './InsightToasts';
 import { StatusCenter } from './StatusCenter';
 import { useStoredFlag } from './useStoredFlag';
 import { useAdaptivePolicy } from '../policy/PolicyContext';
+import { useRecorder } from '../recording/RecorderContext';
+import { downloadRun } from '../recording/recorder';
 import styles from './DebugOverlay.module.css';
 
 const allowed = import.meta.env.DEV || new URLSearchParams(location.search).has('debug');
@@ -63,10 +65,9 @@ interface PanelProps {
 function Panel({ onClose, minimized, onMinimize, popups, onPopups }: PanelProps) {
   const snap = useSignalSnapshot();
   const tracker = useSignalTracker();
-  const engine = useInsightEngine();
   const insight = useInsightState();
+  const recorder = useRecorder();
   const [seenOnly, setSeenOnly] = useState(true);
-  const [copied, setCopied] = useState(false);
   const { session: s, focus } = snap;
 
   useEffect(() => {
@@ -74,13 +75,6 @@ function Panel({ onClose, minimized, onMinimize, popups, onPopups }: PanelProps)
     el?.setAttribute('data-debug-focus', '');
     return () => el?.removeAttribute('data-debug-focus');
   }, [s.focusUnitId, tracker]);
-
-  const copy = async () => {
-    const data = { signals: tracker.getSnapshot(), insights: engine.getState() };
-    await navigator.clipboard.writeText(JSON.stringify(data, null, 2));
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  };
 
   const units = seenOnly ? snap.units.filter((u) => u.visits > 0 || u.bandMs > 0) : snap.units;
   const state = !s.visible ? 'hidden' : s.idle ? 'idle' : 'active';
@@ -123,7 +117,7 @@ function Panel({ onClose, minimized, onMinimize, popups, onPopups }: PanelProps)
             {state}
           </span>
           <span className={styles.grow} />
-          <button onClick={copy}>{copied ? 'copied' : 'copy JSON'}</button>
+          {recorder && <button onClick={() => downloadRun(recorder.toJSON())}>download run</button>}
           <button onClick={onMinimize} aria-label="Minimise" title="Minimise">
             –
           </button>

@@ -225,6 +225,7 @@ export class InsightEngine {
       textual: u.words >= C.minTextWords,
       label: u.label,
       at: snap.session.elapsedMs,
+      passed: true,
     });
     this.dirty = true;
     this.add({

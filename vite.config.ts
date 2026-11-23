@@ -3,6 +3,7 @@ import type { Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import fs from 'node:fs';
 import path from 'node:path';
+import { execSync } from 'node:child_process';
 
 const MEDIA_DIR = path.resolve(import.meta.dirname, 'assets');
 const MEDIA_PREFIX = '/media/';
@@ -44,8 +45,20 @@ function localMedia(): Plugin {
   };
 }
 
+function buildId() {
+  const { version } = JSON.parse(fs.readFileSync(path.resolve(import.meta.dirname, 'package.json'), 'utf8'));
+  let sha = process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7);
+  try {
+    sha ??= execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+  } catch {
+    sha = 'unknown';
+  }
+  return `${version}+${sha}`;
+}
+
 export default defineConfig({
   plugins: [react(), localMedia()],
+  define: { __BUILD__: JSON.stringify(buildId()) },
   test: {
     include: ['tests/**/*.test.ts'],
   },
