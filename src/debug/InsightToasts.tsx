@@ -67,7 +67,7 @@ function tone(i: Insight): string {
     const r = ENGAGEMENT_RANK[i.engagement];
     return r <= 1 ? 'low' : r === 2 ? 'mid' : 'high';
   }
-  if (i.kind === 'went-back') return 'high';
+  if (['went-back', 'image-opened', 'text-expanded'].includes(i.kind)) return 'high';
   if (i.scope === 'chapter') return 'chapter';
   if (['inactive', 'left-tab', 'window-blur', 'pointer-unreliable'].includes(i.kind)) return 'warn';
   return 'session';

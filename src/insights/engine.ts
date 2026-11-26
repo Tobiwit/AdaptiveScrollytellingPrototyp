@@ -119,6 +119,30 @@ export class InsightEngine {
           });
         }
         break;
+      case 'image-close':
+        if (e.ms >= C.openNoticeMs) {
+          this.add({
+            kind: 'image-opened',
+            scope: 'unit',
+            message: `Looked at “${labelOf(snap, e.unitId)}” full screen`,
+            confidence: Math.min(0.95, 0.6 + e.ms / 10_000),
+            evidence: [`open ${sec(e.ms)}`],
+            unitId: e.unitId,
+          });
+        }
+        break;
+      case 'expand':
+        if (e.open) {
+          this.add({
+            kind: 'text-expanded',
+            scope: 'unit',
+            message: `Opened more text on “${labelOf(snap, e.unitId)}”`,
+            confidence: 0.95,
+            evidence: ['clicked to unfold'],
+            unitId: e.unitId,
+          });
+        }
+        break;
       case 'backscroll':
         if (e.toUnitId) {
           this.add({

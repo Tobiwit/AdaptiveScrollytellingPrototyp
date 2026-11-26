@@ -72,4 +72,12 @@ describe('concludeRun', () => {
   it('waits for tags before building an interest profile', () => {
     expect(item(concludeRun(signals(), insights([]), null, false), 'interests').waiting).toBe('needs tags');
   });
+  it('raises context when section texts get unfolded', () => {
+    const skimmed = insights(['skimmed', 'skimmed', 'skimmed', 'skimmed', 'skimmed', 'skimmed']);
+    expect(item(concludeRun(signals(), skimmed, null, false), 'context').value).toBe('low');
+    const unfolded = signals();
+    const parts = { image: 0, caption: 0, text: 0, other: 0 };
+    unfolded.units = [{ unitId: 's/text', kind: 'text', words: 80, visits: 1, returns: 0, idleStarts: 0, order: 0, bandMs: 1, textProgress: 1, hoverMs: parts, clicks: parts, opens: 0, expands: 3 }] as unknown as SignalSnapshot['units'];
+    expect(item(concludeRun(unfolded, skimmed, null, false), 'context').value).toBe('medium');
+  });
 });

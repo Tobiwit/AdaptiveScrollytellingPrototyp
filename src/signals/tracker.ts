@@ -31,6 +31,9 @@ interface UnitState {
   hoverEntries: PartRecord;
   clicks: PartRecord;
   idleStarts: number;
+  opens: number;
+  openMs: number;
+  expands: number;
   firstFocusAt: number | null;
   lastFocusAt: number | null;
   paceSampled: boolean;
@@ -100,6 +103,7 @@ export class SignalTracker {
   private clicks = 0;
   private navJumps = 0;
   private paceSamples: number[] = [];
+  private opened: { unitId: string; ms: number } | null = null;
 
   constructor() {
     this.snapshot = this.buildSnapshot(0);
@@ -177,6 +181,9 @@ export class SignalTracker {
         hoverEntries: zeroParts(),
         clicks: zeroParts(),
         idleStarts: 0,
+        opens: 0,
+        openMs: 0,
+        expands: 0,
         firstFocusAt: null,
         lastFocusAt: null,
         paceSampled: false,
@@ -188,6 +195,33 @@ export class SignalTracker {
     return () => {
       if (state.el === el) state.el = null;
     };
+  }
+
+  /** Full-screen view of a unit's image; it keeps focus while open. */
+  openImage(unitId: string) {
+    const u = this.units.get(unitId);
+    if (!u) return;
+    this.closeImage();
+    this.markActivity();
+    u.opens++;
+    this.opened = { unitId, ms: 0 };
+    this.emit({ type: 'image-open', unitId, workId: u.meta.workId });
+  }
+
+  closeImage() {
+    if (!this.opened) return;
+    const { unitId, ms } = this.opened;
+    this.opened = null;
+    this.markActivity();
+    this.emit({ type: 'image-close', unitId, ms: Math.round(ms) });
+  }
+
+  expand(unitId: string, open: boolean) {
+    const u = this.units.get(unitId);
+    if (!u) return;
+    this.markActivity();
+    if (open) u.expands++;
+    this.emit({ type: 'expand', unitId, open });
   }
 
   getElement(unitId: string): HTMLElement | null {
@@ -352,10 +386,15 @@ export class SignalTracker {
     }
     this.bandFocusId = bandFocus?.meta.unitId ?? null;
 
-    // A moving pointer beats the band
+    // An open image beats a moving pointer, which beats the band
     const pointerEngaged = this.pointer.inside && t - this.pointer.lastMove < C.pointerEngagedMs;
     const pointerUnit = pointerEngaged && this.pointer.unitId ? this.units.get(this.pointer.unitId) : undefined;
-    const next = pointerUnit?.el ? pointerUnit : bandFocus;
+    const openUnit = this.opened ? this.units.get(this.opened.unitId) : undefined;
+    const next = openUnit ?? (pointerUnit?.el ? pointerUnit : bandFocus);
+    if (openUnit && active) {
+      openUnit.openMs += dt;
+      this.opened!.ms += dt;
+    }
     const nextId = next?.meta.unitId ?? null;
     if (nextId !== this.focusId) {
       if (focus) this.exitFocus(focus, t);
@@ -488,6 +527,9 @@ export class SignalTracker {
           hoverEntries: { ...u.hoverEntries },
           clicks: { ...u.clicks },
           idleStarts: u.idleStarts,
+          opens: u.opens,
+          openMs: u.openMs,
+          expands: u.expands,
           firstFocusAt: u.firstFocusAt,
           lastFocusAt: u.lastFocusAt,
         };

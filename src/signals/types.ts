@@ -53,6 +53,11 @@ export interface UnitSnapshot extends UnitMeta {
   hoverEntries: PartRecord;
   clicks: PartRecord;
   idleStarts: number;
+  /** full-screen image views */
+  opens: number;
+  openMs: number;
+  /** "more" / "read text" opened */
+  expands: number;
   firstFocusAt: number | null;
   lastFocusAt: number | null;
 }
@@ -141,6 +146,9 @@ export type SignalEvent = { t: number } & (
   | { type: 'hover'; unitId: string; part: Part; ms: number }
   | { type: 'click'; unitId: string | null; part: Part | null; target: string }
   | { type: 'nav-jump'; href: string }
+  | { type: 'image-open'; unitId: string; workId?: string }
+  | { type: 'image-close'; unitId: string; ms: number }
+  | { type: 'expand'; unitId: string; open: boolean }
 );
 
 export interface SignalSnapshot {

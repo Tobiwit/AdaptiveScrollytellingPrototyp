@@ -343,5 +343,11 @@ function describe(e: SignalEvent, units: UnitSnapshot[]): string {
       return `click ${e.target}${e.unitId ? ` on ${e.part} of ${labelOf(units, e.unitId)}` : ''}`;
     case 'nav-jump':
       return `jump to ${e.href}`;
+    case 'image-open':
+      return `opened ${labelOf(units, e.unitId)} full screen`;
+    case 'image-close':
+      return `closed ${labelOf(units, e.unitId)} (${sec(e.ms)})`;
+    case 'expand':
+      return `${e.open ? 'opened' : 'closed'} more text on ${labelOf(units, e.unitId)}`;
   }
 }

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAdaptation } from '../adaptation/AdaptationContext';
+import { useSignalTracker } from '../signals/SignalsContext';
 import { countWords, Paragraphs } from './Text';
 
 export interface AdaptiveTextState {
@@ -37,12 +38,31 @@ export function useAdaptiveText({ text, lengths, context }: TextSource, fold: 't
   };
 }
 
-export function AdaptiveText({ state, className, moreLabel = 'More' }: { state: AdaptiveTextState; className?: string; moreLabel?: string }) {
+export function AdaptiveText({
+  state,
+  className,
+  moreLabel = 'More',
+}: {
+  state: AdaptiveTextState;
+  className?: string;
+  moreLabel?: string;
+}) {
+  const tracker = useSignalTracker();
   return (
     <>
       <Paragraphs text={state.shown} className={className} />
       {state.fold && (
-        <button type="button" className="more-toggle" data-part="text" onClick={state.fold.toggle} aria-expanded={state.fold.open}>
+        <button
+          type="button"
+          className="more-toggle"
+          data-part="text"
+          aria-expanded={state.fold.open}
+          onClick={(e) => {
+            const unitId = e.currentTarget.closest('[data-unit]')?.getAttribute('data-unit');
+            if (unitId) tracker.expand(unitId, !state.fold!.open);
+            state.fold!.toggle();
+          }}
+        >
           {state.fold.open ? 'Less' : moreLabel}
         </button>
       )}

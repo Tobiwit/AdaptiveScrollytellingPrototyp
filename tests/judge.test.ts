@@ -33,6 +33,9 @@ function unit(over: Partial<UnitSnapshot> = {}): UnitSnapshot {
     hoverEntries: parts(),
     clicks: parts(),
     idleStarts: 0,
+    opens: 0,
+    openMs: 0,
+    expands: 0,
     firstFocusAt: 0,
     lastFocusAt: 0,
     ...over,
@@ -83,5 +86,9 @@ describe('judgeUnit', () => {
   it('uses the personal reading pace when known', () => {
     // 30 s dwell is "read" at 200 wpm but "lingered" for someone whose personal expectation is 15 s.
     expect(judgeUnit(unit({ expectedPersonalMs: 15_000 })).engagement).toBe('lingered');
+  });
+  it('counts a long full-screen view as looking intensely', () => {
+    const j = judgeUnit(unit({ kind: 'work', words: 0, hasImage: true, expectedMs: 3000, dwellMs: 2500, openMs: 2000, opens: 1 }));
+    expect(j.engagement).toBe('intense');
   });
 });

@@ -55,7 +55,9 @@ export type InsightKind =
   | 'pointer-unreliable'
   | 'reading-pace'
   | 'chapter-summary'
-  | 'reading-style';
+  | 'reading-style'
+  | 'image-opened'
+  | 'text-expanded';
 
 export interface Insight {
   id: number;

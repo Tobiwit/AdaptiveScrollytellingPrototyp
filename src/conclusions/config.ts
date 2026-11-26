@@ -6,8 +6,9 @@ export const conclusionConfig = {
   calibration: { verdicts: 6, activeMs: 60_000 },
 
   // value cut-offs on the -1…1 scores
-  textNeed: { short: -0.33, long: 0.33 },
-  context: { low: -0.33, lowVsWorks: -0.4, high: 0.1, highVsWorks: -0.1 },
-  visual: { textLed: -0.25, imageLed: 0.25, pointerWeight: 0.5 },
+  // *Weight: added per click on "Read text" / "More" / a full-screen image, up to +0.5
+  textNeed: { short: -0.33, long: 0.33, expandWeight: 0.15 },
+  context: { low: -0.33, lowVsWorks: -0.4, high: 0.1, highVsWorks: -0.1, expandWeight: 0.15 },
+  visual: { textLed: -0.25, imageLed: 0.25, pointerWeight: 0.5, openWeight: 0.15 },
   trend: { falling: -0.25, rising: 0.25 },
 };

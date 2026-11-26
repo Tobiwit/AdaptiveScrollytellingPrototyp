@@ -12,6 +12,13 @@
   align-items: center;
 }
 
+.zoom {
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+}
+
 .img {
   display: block;
   max-width: 100%;

@@ -55,31 +55,36 @@ export function concludeRun(signals: SignalSnapshot, insights: InsightState, pre
 
   // Text need
   const a = weighted(texts);
+  const expandsOn = (kind: string) => sum(signals.units.filter((u) => u.kind === kind).map((u) => u.expands));
+  const workExpands = expandsOn('work');
+  const need = clamp(a.mean + Math.min(0.5, workExpands * K.textNeed.expandWeight), -1, 1);
   const recentVsAll = texts.length >= 6 ? a.mean - mean(texts.map((v) => SCORE[v.engagement])) : 0;
   items.push({
     id: 'textNeed',
     label: 'text need',
-    value: texts.length ? tri(a.mean, K.textNeed.short, K.textNeed.long, ['short', 'standard', 'long']) : '–',
-    meter: texts.length ? (a.mean + 1) / 2 : null,
+    value: texts.length ? tri(need, K.textNeed.short, K.textNeed.long, ['short', 'standard', 'long']) : '–',
+    meter: texts.length ? (need + 1) / 2 : null,
     confidence: evidence(a.weight) * (1 - 0.5 * a.std),
     basis: texts.length,
     trend: arrow(recentVsAll, 0.2),
-    evidence: [`${texts.length} texts judged, score ${a.mean.toFixed(2)}`, counts(texts)],
+    evidence: [`${texts.length} texts judged, score ${a.mean.toFixed(2)}`, counts(texts), ...(workExpands ? [`opened ${workExpands} work texts`] : [])],
   });
 
   // Context: section texts vs the works' own texts
   const ctx = weighted(texts.filter((v) => v.kind === 'text'));
   const own = weighted(texts.filter((v) => v.kind === 'work'));
-  const rel = own.n ? ctx.mean - own.mean : 0;
+  const sectionExpands = expandsOn('text');
+  const ctxScore = clamp(ctx.mean + Math.min(0.5, sectionExpands * K.context.expandWeight), -1, 1);
+  const rel = own.n ? ctxScore - own.mean : 0;
   items.push({
     id: 'context',
     label: 'context',
-    value: !ctx.n ? '–' : ctx.mean < K.context.low || rel < K.context.lowVsWorks ? 'low' : ctx.mean > K.context.high && rel > K.context.highVsWorks ? 'high' : 'medium',
-    meter: ctx.n ? (ctx.mean + 1) / 2 : null,
+    value: !ctx.n ? '–' : ctxScore < K.context.low || rel < K.context.lowVsWorks ? 'low' : ctxScore > K.context.high && rel > K.context.highVsWorks ? 'high' : 'medium',
+    meter: ctx.n ? (ctxScore + 1) / 2 : null,
     confidence: evidence(ctx.weight) * (1 - 0.5 * ctx.std),
     basis: ctx.n,
     trend: null,
-    evidence: [`context texts ${ctx.mean.toFixed(2)} (${ctx.n})`, `work texts ${own.mean.toFixed(2)} (${own.n})`],
+    evidence: [`context texts ${ctx.mean.toFixed(2)} (${ctx.n})`, `work texts ${own.mean.toFixed(2)} (${own.n})`, ...(sectionExpands ? [`unfolded ${sectionExpands} section texts`] : [])],
   });
 
   // Trend: last 6 verdicts vs the ones before
@@ -124,7 +129,8 @@ export function concludeRun(signals: SignalSnapshot, insights: InsightState, pre
   const hoverImg = sum(signals.units.map((u) => u.hoverMs.image));
   const hoverTxt = sum(signals.units.map((u) => u.hoverMs.text));
   const ptr = pointerOk && hoverImg + hoverTxt > 3000 ? (hoverImg - hoverTxt) / (hoverImg + hoverTxt) : 0;
-  const visual = clamp((img.n && a.n ? (img.mean - a.mean) / 2 : 0) + K.visual.pointerWeight * ptr, -1, 1);
+  const opens = sum(signals.units.map((u) => u.opens));
+  const visual = clamp((img.n && a.n ? (img.mean - a.mean) / 2 : 0) + K.visual.pointerWeight * ptr + Math.min(0.5, opens * K.visual.openWeight), -1, 1);
   items.push({
     id: 'visual',
     label: 'visual',
@@ -133,7 +139,11 @@ export function concludeRun(signals: SignalSnapshot, insights: InsightState, pre
     confidence: Math.min(0.9, evidence(img.weight + a.weight)),
     basis: img.n + a.n,
     trend: null,
-    evidence: [`images ${img.mean.toFixed(2)} (${img.n}) vs texts ${a.mean.toFixed(2)} (${a.n})`, pointerOk ? `pointer image share ${pct((ptr + 1) / 2)}` : 'pointer ignored'],
+    evidence: [
+      `images ${img.mean.toFixed(2)} (${img.n}) vs texts ${a.mean.toFixed(2)} (${a.n})`,
+      pointerOk ? `pointer image share ${pct((ptr + 1) / 2)}` : 'pointer ignored',
+      ...(opens ? [`${opens} full-screen views`] : []),
+    ],
   });
 
   // Interest per work

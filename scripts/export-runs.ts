@@ -87,6 +87,9 @@ const verdicts = runs.flatMap((r) =>
     hover_image_ms: u ? Math.round(u.hoverMs.image) : '',
     hover_text_ms: u ? Math.round(u.hoverMs.text) : '',
     clicks: u ? Object.values(u.clicks).reduce((a, b) => a + b, 0) : '',
+    opens: u?.opens ?? '',
+    open_ms: u ? Math.round(u.openMs ?? 0) : '',
+    expands: u?.expands ?? '',
   })),
 );
 

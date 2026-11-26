@@ -31,6 +31,12 @@ export function judgeUnit(u: UnitSnapshot): Judgement {
     confidence = Math.min(0.95, 0.6 + u.hoverMs.image / 20_000);
     evidence.push(`pointer on image ${sec(u.hoverMs.image)}`);
   }
+  if (u.hasImage && u.openMs >= C.intenseOpenMs && ENGAGEMENT_RANK[engagement] < ENGAGEMENT_RANK.intense) {
+    engagement = 'intense';
+    confidence = Math.min(0.95, 0.7 + u.openMs / 20_000);
+    evidence.push(`full screen ${sec(u.openMs)}`);
+  }
+  if (u.expands > 0) evidence.push('opened more text');
 
   const low = LOW.includes(engagement);
   if (u.relSpeed !== null) {

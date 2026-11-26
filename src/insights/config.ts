@@ -10,6 +10,8 @@ export const insightConfig = {
   boundarySoftness: 0.25, // log-ratio units
 
   intenseImageHoverMs: 4000,
+  intenseOpenMs: 1500, // full-screen view
+  openNoticeMs: 800,
 
   settleMs: 2500, // wait after focus leaves, so pointer sweeps don't count
   completelySkippedMaxBandMs: 300,

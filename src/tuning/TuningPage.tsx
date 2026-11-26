@@ -14,17 +14,20 @@ const CUTOFFS: Partial<Record<ConclusionId, [key: string, label: string][]>> = {
   textNeed: [
     ['short', 'short <'],
     ['long', 'long >'],
+    ['expandWeight', 'per “Read text”'],
   ],
   context: [
     ['low', 'low <'],
     ['lowVsWorks', 'or vs works <'],
     ['high', 'high >'],
     ['highVsWorks', 'and vs works >'],
+    ['expandWeight', 'per “More”'],
   ],
   visual: [
     ['textLed', 'text-led <'],
     ['imageLed', 'image-led >'],
     ['pointerWeight', 'pointer weight'],
+    ['openWeight', 'per full-screen view'],
   ],
   trend: [
     ['falling', 'falling <'],
@@ -33,9 +36,9 @@ const CUTOFFS: Partial<Record<ConclusionId, [key: string, label: string][]>> = {
 };
 
 const SOURCES: Partial<Record<ConclusionId, string>> = {
-  textNeed: 'text verdicts ← dwell vs expected, pace, scroll speed, text progress, idle',
-  context: 'section-text verdicts vs work-text verdicts',
-  visual: 'image vs text verdicts, pointer on images',
+  textNeed: 'text verdicts ← dwell vs expected, pace, scroll speed, text progress, idle; “Read text” clicks',
+  context: 'section-text verdicts vs work-text verdicts; “More” clicks',
+  visual: 'image vs text verdicts, pointer on images, full-screen views',
   trend: 'recent vs earlier verdicts, skips, scroll tempo',
   strain: 'pace, re-reads, unfinished texts, idle',
   navigation: 'scroll-backs, nav jumps',

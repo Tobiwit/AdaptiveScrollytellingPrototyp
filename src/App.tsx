@@ -5,6 +5,7 @@ import { PresentationProvider } from './presentation/PresentationContext';
 import { layouts } from './layouts/registry';
 import { ProgressNav } from './components/ProgressNav';
 import { SignalsProvider } from './signals/SignalsContext';
+import { LightboxProvider } from './components/Lightbox';
 import { DebugOverlay } from './debug/DebugOverlay';
 import { InsightsProvider } from './insights/InsightsContext';
 import { ConclusionsProvider } from './conclusions/ConclusionsContext';
@@ -16,7 +17,10 @@ import { hashContent } from './recording/recorder';
 export function App({ exhibition, works }: LoadedExhibition) {
   const adaptive = useMemo(() => new URLSearchParams(location.search).has('adaptive'), []);
   const adaptivePolicy = useMemo(() => (adaptive ? AdaptivePolicy.for(exhibition) : null), [adaptive, exhibition]);
-  const policy = useMemo(() => adaptivePolicy ?? new StaticPolicy(works, exhibition.defaults), [adaptivePolicy, works, exhibition]);
+  const policy = useMemo(
+    () => adaptivePolicy ?? new StaticPolicy(works, exhibition.defaults),
+    [adaptivePolicy, works, exhibition],
+  );
   const runMeta = useMemo(
     () => ({
       condition: adaptive ? ('adaptive' as const) : ('static' as const),
@@ -40,47 +44,49 @@ export function App({ exhibition, works }: LoadedExhibition) {
     <PresentationProvider policy={policy}>
       <PolicyProvider policy={adaptivePolicy}>
         <SignalsProvider>
-          <a className="skip-link" href="#main">
-            Skip to content
-          </a>
-          <ProgressNav chapters={exhibition.chapters} />
-          <main id="main">
-            {exhibition.chapters.map((chapter) => (
-              <ChapterAdaptation key={chapter.id} chapterId={chapter.id}>
-                <div id={chapter.id} className="chapter" data-chapter={chapter.id}>
-                  {chapter.sections.map((section) => {
-                    const layout = layouts[section.layout];
-                    const Component = layout.component;
-                    return (
-                      <section
-                        key={section.id}
-                        id={section.id}
-                        className="section"
-                        data-layout={section.layout}
-                        aria-label={section.title ?? chapter.title}
-                      >
-                        <Component
-                          exhibition={exhibition}
-                          chapter={chapter}
-                          section={section}
-                          works={section.works.map((id) => works.get(id)!)}
-                          options={layout.options.parse(section.options)}
-                        />
-                      </section>
-                    );
-                  })}
-                </div>
-              </ChapterAdaptation>
-            ))}
-          </main>
-          <InsightsProvider chapterTitles={chapterTitles}>
-            <ConclusionsProvider hasTags={hasTags}>
-              <RecorderProvider meta={runMeta}>
-                <PolicyDriver />
-                <DebugOverlay />
-              </RecorderProvider>
-            </ConclusionsProvider>
-          </InsightsProvider>
+          <LightboxProvider>
+            <a className="skip-link" href="#main">
+              Skip to content
+            </a>
+            <ProgressNav chapters={exhibition.chapters} />
+            <main id="main">
+              {exhibition.chapters.map((chapter) => (
+                <ChapterAdaptation key={chapter.id} chapterId={chapter.id}>
+                  <div id={chapter.id} className="chapter" data-chapter={chapter.id}>
+                    {chapter.sections.map((section) => {
+                      const layout = layouts[section.layout];
+                      const Component = layout.component;
+                      return (
+                        <section
+                          key={section.id}
+                          id={section.id}
+                          className="section"
+                          data-layout={section.layout}
+                          aria-label={section.title ?? chapter.title}
+                        >
+                          <Component
+                            exhibition={exhibition}
+                            chapter={chapter}
+                            section={section}
+                            works={section.works.map((id) => works.get(id)!)}
+                            options={layout.options.parse(section.options)}
+                          />
+                        </section>
+                      );
+                    })}
+                  </div>
+                </ChapterAdaptation>
+              ))}
+            </main>
+            <InsightsProvider chapterTitles={chapterTitles}>
+              <ConclusionsProvider hasTags={hasTags}>
+                <RecorderProvider meta={runMeta}>
+                  <PolicyDriver />
+                  <DebugOverlay />
+                </RecorderProvider>
+              </ConclusionsProvider>
+            </InsightsProvider>
+          </LightboxProvider>
         </SignalsProvider>
       </PolicyProvider>
     </PresentationProvider>
