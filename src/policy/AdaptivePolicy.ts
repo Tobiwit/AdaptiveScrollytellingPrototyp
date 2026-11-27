@@ -21,7 +21,7 @@ export interface Decision extends Change {
   message: string;
   confidence: number;
   evidence: string[];
-  via: 'auto' | 'accepted' | 'undo';
+  via: 'auto' | 'accepted' | 'undo' | 'revert';
 }
 
 export type SuggestionStatus = 'offered' | 'accepted' | 'declined' | 'ignored' | 'undone';
@@ -72,6 +72,8 @@ export class AdaptivePolicy implements PresentationPolicy {
   private suggestions: Suggestion[] = [];
   private cooldownUntil: Partial<Record<Dimension, number>> = {};
   private version = 0;
+  /** the visitor reverted everything: no more changes or suggestions */
+  private stopped = false;
   log: Decision[] = [];
   status = 'waiting';
 
@@ -124,6 +126,7 @@ export class AdaptivePolicy implements PresentationPolicy {
     this.log = [];
     this.suggestions = [];
     this.cooldownUntil = {};
+    this.stopped = false;
     this.status = 'waiting';
     this.notify();
   }
@@ -138,6 +141,7 @@ export class AdaptivePolicy implements PresentationPolicy {
     for (const s of this.suggestions) {
       if (s.status === 'offered' && this.chapters.indexOf(s.chapterId) <= idx) this.answer(s, 'ignored');
     }
+    if (this.stopped) return this.notify();
 
     if (P.requireCalibration && !run.calibrated) {
       this.status = 'calibrating';
@@ -190,6 +194,24 @@ export class AdaptivePolicy implements PresentationPolicy {
     for (const [id, steps] of this.frozen) {
       if (this.chapters.indexOf(id) >= from) this.frozen.set(id, { ...steps, [dim]: step });
     }
+  }
+
+  /** Back to the original from the next chapter on, and no further adaptation. */
+  revertAll() {
+    const at = this.chapters[this.reached + 1] ?? null;
+    for (const dim of DIMENSIONS) {
+      const base = dim === 'size' ? 1 : BASELINE[dim];
+      this.apply({ dimension: dim, from: this.planned[dim], to: base }, at, { label: 'visitor', value: 'revert all', confidence: 1 }, 'revert');
+    }
+    for (const s of this.suggestions) if (s.status === 'offered') this.answer(s, 'declined');
+    this.stopped = true;
+    this.status = 'reverted';
+    this.notify();
+  }
+
+  /** Most recent decision per dimension, for showing where a change applies from. */
+  lastDecision(dim: Dimension): Decision | null {
+    return [...this.log].reverse().find((d) => d.dimension === dim) ?? null;
   }
 
   private candidates(run: RunConclusions) {
@@ -249,7 +271,7 @@ export class AdaptivePolicy implements PresentationPolicy {
       via,
       message: `${MESSAGES[dim][to > from ? 1 : 0]} from the next chapter`,
       confidence: c.confidence,
-      evidence: [`${c.label}: ${c.value} (${Math.round(c.confidence * 100)}%, settled)`, `${dim} ${STEP_LABELS[dim][from]} → ${STEP_LABELS[dim][to]}`, ...(via === 'auto' ? [] : [via])],
+      evidence: [via === 'revert' ? 'reverted by the visitor' : `${c.label}: ${c.value} (${Math.round(c.confidence * 100)}%, settled)`, `${dim} ${STEP_LABELS[dim][from]} → ${STEP_LABELS[dim][to]}`, ...(via === 'auto' ? [] : [via])],
     };
     this.log.push(d);
     this.decisions.emit(d);

@@ -53,6 +53,17 @@ describe('AdaptivePolicy', () => {
     expect(p.getPlanned().length).toBe(1);
   });
 
+  it('reverts everything ahead and stops adapting', () => {
+    const p = policy();
+    p.update(run({ textNeed: 'short', visual: 'image-led' }), 'c1');
+    expect(p.stepsFor('c2').length).toBe(0);
+    p.revertAll();
+    expect(p.stepsFor('c2')).toEqual({ length: 1, depth: 1, size: 1, presence: 1 });
+    p.update(run({ textNeed: 'short' }), 'c2');
+    expect(p.stepsFor('c3').length).toBe(1);
+    expect(p.log.filter((d) => d.via === 'revert').map((d) => d.dimension).sort()).toEqual(['length', 'presence', 'size']);
+  });
+
   describe('suggest mode', () => {
     it('offers one bundled change and applies it only when accepted', () => {
       const p = policy('suggest');

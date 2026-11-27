@@ -1,0 +1,130 @@
+.root {
+  position: fixed;
+  right: var(--space-4);
+  bottom: var(--space-4);
+  z-index: 1001; /* above the debug panel */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-2);
+  font-family: var(--font-ui);
+}
+
+.circle {
+  position: relative;
+  width: 2.75rem;
+  height: 2.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-rule);
+  border-radius: 50%;
+  background: var(--color-bg);
+  color: var(--color-text);
+  cursor: pointer;
+  animation: appear var(--dur-slow) var(--ease);
+  transition: border-color var(--dur) var(--ease);
+}
+
+.circle:hover,
+.circle[aria-expanded='true'] {
+  border-color: var(--color-text);
+}
+
+.circle svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+
+.dot {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: var(--color-accent);
+}
+
+.panel {
+  width: 19rem;
+  padding: var(--space-3);
+  border: 1px solid var(--color-rule);
+  border-radius: 10px;
+  background: var(--color-bg);
+  animation: appear var(--dur) var(--ease);
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+    transform: translateY(0.25rem);
+  }
+}
+
+.title {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+.item {
+  padding: var(--space-2) 0;
+  border-top: 1px solid var(--color-rule);
+}
+
+.label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-size: var(--text-sm);
+}
+
+.pills {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.pill {
+  flex: 1;
+  padding: 0.3rem 0;
+  border: 1px solid var(--color-rule);
+  border-radius: 999px;
+  font-size: var(--text-xs);
+  text-align: center;
+  color: var(--color-muted);
+}
+
+.pill[data-on] {
+  border-color: var(--color-text);
+  background: var(--color-text);
+  color: var(--color-bg);
+}
+
+.note {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+}
+
+.revert {
+  width: 100%;
+  margin-top: var(--space-2);
+  padding: 0.5rem 0;
+  border: 1px solid var(--color-text);
+  border-radius: 999px;
+  background: none;
+  font: 500 var(--text-xs) / 1 var(--font-ui);
+  letter-spacing: 0.04em;
+  color: var(--color-text);
+  cursor: pointer;
+  transition:
+    background var(--dur) var(--ease),
+    color var(--dur) var(--ease);
+}
+
+.revert:hover {
+  background: var(--color-text);
+  color: var(--color-bg);
+}

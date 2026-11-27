@@ -12,6 +12,7 @@ import { ConclusionsProvider } from './conclusions/ConclusionsContext';
 import { AdaptivePolicy } from './policy/AdaptivePolicy';
 import { ChapterAdaptation, PolicyDriver, PolicyProvider } from './policy/PolicyContext';
 import { SuggestionCard } from './policy/SuggestionCard';
+import { AdaptationStatus } from './policy/AdaptationStatus';
 import { RecorderProvider } from './recording/RecorderContext';
 import { hashContent } from './recording/recorder';
 
@@ -84,6 +85,7 @@ export function App({ exhibition, works }: LoadedExhibition) {
                 </ChapterAdaptation>
               ))}
             </main>
+            <AdaptationStatus />
             <InsightsProvider chapterTitles={chapterTitles}>
               <ConclusionsProvider hasTags={hasTags}>
                 <RecorderProvider meta={runMeta}>
