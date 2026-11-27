@@ -19,7 +19,8 @@ export function DebugOverlay() {
   const [open, setOpen] = useState(() => new URLSearchParams(location.search).has('debug'));
   const [minimized, setMinimized] = useStoredFlag('signals-debug-minimized');
   const [popups, setPopups] = useStoredFlag('signals-debug-popups', true);
-  const adaptive = !!useAdaptivePolicy();
+  // without debug, only automatic changes get announced; suggest mode has its card
+  const adaptive = useAdaptivePolicy()?.mode === 'auto';
 
   useEffect(() => {
     if (!allowed) return;

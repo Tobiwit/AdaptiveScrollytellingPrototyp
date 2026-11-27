@@ -3,7 +3,7 @@ import type { SessionSnapshot, SignalEvent, UnitSnapshot } from '../signals/type
 import type { InsightEngine } from '../insights/engine';
 import type { Insight, UnitVerdict, VisitorProfile } from '../insights/types';
 import type { RunConclusions } from '../conclusions/conclude';
-import type { AdaptivePolicy, Decision } from '../policy/AdaptivePolicy';
+import type { AdaptivePolicy, Decision, Suggestion, SuggestionStatus } from '../policy/AdaptivePolicy';
 import { loadOverrides, type Overrides } from '../tuning/tuning';
 
 export const RUN_FORMAT = 'run/1';
@@ -11,7 +11,7 @@ export const RUN_FORMAT = 'run/1';
 export interface RunMeta {
   sessionId: string;
   participant: string | null;
-  condition: 'static' | 'adaptive';
+  condition: 'static' | 'adaptive' | 'suggest';
   exhibition: string;
   contentHash: string;
   build: string;
@@ -41,6 +41,8 @@ export interface RunFile {
   /** whenever a value (except progress), settled flag or calibration changes */
   conclusions: { t: number; calibrated: boolean; items: { id: string; value: string; confidence: number; settled: boolean }[] }[];
   decisions: (Decision & { t: number })[];
+  /** suggest mode: offered / accepted / declined / ignored / undone */
+  suggestions?: { t: number; status: SuggestionStatus; suggestion: Suggestion }[];
   /** on every new chapter and at the end */
   checkpoints: Checkpoint[];
 }
@@ -75,6 +77,7 @@ export class RunRecorder {
       verdicts: [],
       conclusions: [],
       decisions: [],
+      suggestions: [],
       checkpoints: [],
     };
   }
@@ -90,7 +93,12 @@ export class RunRecorder {
       this.engine.insights.subscribe((i) => this.file.insights.push(i)),
       this.engine.subscribe(() => this.onVerdicts()),
     );
-    if (this.policy) this.teardown.push(this.policy.decisions.subscribe((d) => this.file.decisions.push({ ...d, t: this.now() })));
+    if (this.policy) {
+      this.teardown.push(
+        this.policy.decisions.subscribe((d) => this.file.decisions.push({ ...d, t: this.now() })),
+        this.policy.suggestionEvents.subscribe((e) => this.file.suggestions!.push({ ...e, t: this.now() })),
+      );
+    }
   }
 
   stop() {

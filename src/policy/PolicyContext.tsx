@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useSyncExternalStore, ty
 import { AdaptationProvider, type Step } from '../adaptation/AdaptationContext';
 import { useRunConclusions } from '../conclusions/ConclusionsContext';
 import { useSignalTracker } from '../signals/SignalsContext';
-import type { AdaptivePolicy, Steps } from './AdaptivePolicy';
+import type { AdaptivePolicy, Steps, Suggestion } from './AdaptivePolicy';
 
 const Ctx = createContext<AdaptivePolicy | null>(null);
 
@@ -27,6 +27,15 @@ export function usePlannedSteps(): Steps | null {
   return useMemo(() => (key ? parseSteps(key.split('|')[0]) : null), [key]);
 }
 
+export function useSuggestion(chapterId: string): Suggestion | null {
+  const policy = useAdaptivePolicy();
+  const key = useSyncExternalStore(policy?.subscribe ?? noop, () => {
+    const s = policy?.suggestionFor(chapterId);
+    return s ? `${s.id}:${s.status}` : '';
+  });
+  return useMemo(() => (key && policy ? policy.suggestionFor(chapterId) : null), [key, policy, chapterId]);
+}
+
 export function ChapterAdaptation({ chapterId, children }: { chapterId: string; children: ReactNode }) {
   const steps = useChapterSteps(chapterId);
   if (!steps) return children;
@@ -39,7 +48,10 @@ export function PolicyDriver() {
   const tracker = useSignalTracker();
   const run = useRunConclusions();
 
-  useEffect(() => policy?.reset(), [policy, tracker]);
+  useEffect(() => {
+    policy?.reset();
+    if (import.meta.env.DEV) (window as unknown as { __policy: unknown }).__policy = policy;
+  }, [policy, tracker]);
 
   useEffect(() => {
     if (!policy) return;

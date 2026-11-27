@@ -49,6 +49,7 @@ const POLICY: [path: string, label: string][] = [
   ['policy.requireCalibration', 'require calibration'],
   ['policy.minConfidence', 'min confidence'],
   ['policy.maxStepPerChapter', 'max step per chapter'],
+  ['policy.suggestCooldownChapters', 'suggest: chapters before asking again'],
 ];
 
 export function TuningPage() {

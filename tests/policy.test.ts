@@ -4,7 +4,7 @@ import { applyOverrides } from '../src/tuning/tuning';
 import type { Conclusion, ConclusionId, RunConclusions } from '../src/conclusions/conclude';
 
 const chapters = ['c1', 'c2', 'c3', 'c4'];
-const policy = () => new AdaptivePolicy(chapters, new Map([['w4', 'c4']]), { textVariant: 'long' });
+const policy = (mode: 'auto' | 'suggest' = 'auto') => new AdaptivePolicy(chapters, new Map([['w4', 'c4']]), { textVariant: 'long' }, mode);
 
 function run(values: Partial<Record<ConclusionId, string>>, calibrated = true, confidence = 0.9): RunConclusions {
   const items = Object.entries(values).map(
@@ -51,5 +51,42 @@ describe('AdaptivePolicy', () => {
     applyOverrides({ 'policy.rules.length.enabled': false });
     p.update(run({ textNeed: 'short' }), 'c2');
     expect(p.getPlanned().length).toBe(1);
+  });
+
+  describe('suggest mode', () => {
+    it('offers one bundled change and applies it only when accepted', () => {
+      const p = policy('suggest');
+      p.update(run({ visual: 'image-led' }), 'c1');
+      const s = p.suggestionFor('c2')!;
+      expect(s.changes.map((c) => c.dimension).sort()).toEqual(['presence', 'size']);
+      expect(p.stepsFor('c2').size).toBe(1);
+      p.accept(s.id);
+      expect(p.stepsFor('c2').size).toBe(2);
+      expect(p.stepsFor('c2').presence).toBe(2);
+      p.undo(s.id);
+      expect(p.stepsFor('c2').size).toBe(1);
+    });
+
+    it('treats scrolling past as ignored and waits before asking again', () => {
+      const p = policy('suggest');
+      p.update(run({ textNeed: 'short' }), 'c1');
+      const s = p.suggestionFor('c2')!;
+      p.update(run({ textNeed: 'short' }), 'c2');
+      expect(s.status).toBe('ignored');
+      expect(p.suggestionFor('c3')).toBeNull();
+      expect(p.getPlanned().length).toBe(1);
+    });
+
+    it('applies to the chapter of the card even after the reader entered it', () => {
+      const p = policy('suggest');
+      p.update(run({ textNeed: 'short' }), 'c1');
+      const s = p.suggestionFor('c2')!;
+      p.update(run({ textNeed: 'short' }), 'c2');
+      p.accept(s.id);
+      expect(p.stepsFor('c1').length).toBe(1);
+      expect(p.stepsFor('c2').length).toBe(0);
+      p.undo(s.id);
+      expect(p.stepsFor('c2').length).toBe(1);
+    });
   });
 });

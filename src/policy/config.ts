@@ -11,6 +11,7 @@ export const policyConfig = {
   requireCalibration: true,
   minConfidence: 0.7, // on top of being settled
   maxStepPerChapter: 1,
+  suggestCooldownChapters: 2, // after a no or a scroll-past, don't ask about that dimension again for N chapters
   rules: {
     length: { enabled: true, from: 'textNeed' },
     depth: { enabled: true, from: 'context' },

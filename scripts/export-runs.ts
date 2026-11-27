@@ -6,6 +6,7 @@
  * sessions.csv     one row per run
  * verdicts.csv     one row per (re)judgement, with the unit measurements behind it
  * decisions.csv    one row per adaptation
+ * suggestions.csv  suggest mode: one row per offer / answer
  * conclusions.csv  long format: one row per conclusion per change
  * events.csv       raw signal events
  */
@@ -102,6 +103,7 @@ const decisions = runs.flatMap((r) =>
     to: d.to,
     applies_from: d.chapterId ?? '',
     confidence: d.confidence.toFixed(3),
+    via: d.via ?? 'auto',
     because: d.evidence[0] ?? '',
   })),
 );
@@ -124,7 +126,20 @@ const events = runs.flatMap((r) =>
 
 const out = path.join(root, 'exports');
 fs.mkdirSync(out, { recursive: true });
-const tables = { sessions, verdicts, decisions, conclusions, events };
+const suggestions = runs.flatMap((r) =>
+  (r.suggestions ?? []).map(({ t, status, suggestion: s }) => ({
+    session_id: r.meta.sessionId,
+    t_s: sec(t),
+    suggestion_id: s.id,
+    status,
+    chapter_id: s.chapterId,
+    changes: s.changes.map((c) => `${c.dimension}:${c.from}>${c.to}`).join(' '),
+    because: `${s.because.id}=${s.because.value}`,
+    confidence: s.because.confidence.toFixed(3),
+  })),
+);
+
+const tables = { sessions, verdicts, decisions, suggestions, conclusions, events };
 for (const [name, rows] of Object.entries(tables)) fs.writeFileSync(path.join(out, `${name}.csv`), toCsv(rows));
 console.log(`${runs.length} runs → exports/ (${Object.entries(tables).map(([n, r]) => `${n} ${r.length}`).join(', ')})`);
 

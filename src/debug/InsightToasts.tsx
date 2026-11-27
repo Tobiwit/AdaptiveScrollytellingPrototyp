@@ -31,13 +31,29 @@ export function InsightToasts({ onlyAdaptations = false }: { onlyAdaptations?: b
     );
   }, [engine, onlyAdaptations]);
 
-  useEffect(
-    () =>
-      policy?.decisions.subscribe((d) =>
+  useEffect(() => {
+    if (!policy) return;
+    const offs = [
+      policy.decisions.subscribe((d) =>
         push({ key: `a${d.id}`, message: d.message, confidence: d.confidence, evidence: d.evidence, tone: 'adapt', until: Date.now() + ADAPT_SHOW_MS }),
       ),
-    [policy],
-  );
+    ];
+    if (!onlyAdaptations) {
+      offs.push(
+        policy.suggestionEvents.subscribe(({ status, suggestion: s }) =>
+          push({
+            key: `s${s.id}${status}`,
+            message: `Suggestion ${status}`,
+            confidence: s.because.confidence,
+            evidence: [`${s.because.label}: ${s.because.value}`, s.changes.map((c) => `${c.dimension} ${c.from}→${c.to}`).join(', '), `at ${s.chapterId}`],
+            tone: 'adapt',
+            until: Date.now() + ADAPT_SHOW_MS,
+          }),
+        ),
+      );
+    }
+    return () => offs.forEach((off) => off());
+  }, [policy, onlyAdaptations]);
 
   useEffect(() => {
     if (!toasts.length) return;

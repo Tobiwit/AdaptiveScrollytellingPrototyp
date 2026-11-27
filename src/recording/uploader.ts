@@ -49,7 +49,7 @@ export class RunUploader {
 
   async save(leaving = false) {
     const run = this.recorder.toJSON();
-    const key = [run.events.length, run.verdicts.length, run.conclusions.length, run.decisions.length, run.checkpoints.length].join();
+    const key = [run.events.length, run.verdicts.length, run.conclusions.length, run.decisions.length, run.suggestions?.length ?? 0, run.checkpoints.length].join();
     if (key === this.lastKey || !run.events.length) return;
     const body = JSON.stringify({
       p_id: run.meta.sessionId,

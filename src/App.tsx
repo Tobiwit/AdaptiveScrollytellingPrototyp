@@ -11,23 +11,28 @@ import { InsightsProvider } from './insights/InsightsContext';
 import { ConclusionsProvider } from './conclusions/ConclusionsContext';
 import { AdaptivePolicy } from './policy/AdaptivePolicy';
 import { ChapterAdaptation, PolicyDriver, PolicyProvider } from './policy/PolicyContext';
+import { SuggestionCard } from './policy/SuggestionCard';
 import { RecorderProvider } from './recording/RecorderContext';
 import { hashContent } from './recording/recorder';
 
 export function App({ exhibition, works }: LoadedExhibition) {
-  const adaptive = useMemo(() => new URLSearchParams(location.search).has('adaptive'), []);
-  const adaptivePolicy = useMemo(() => (adaptive ? AdaptivePolicy.for(exhibition) : null), [adaptive, exhibition]);
+  // ?adaptive applies changes, ?adaptive=suggest offers them first
+  const mode = useMemo(() => {
+    const p = new URLSearchParams(location.search);
+    return p.has('adaptive') ? (p.get('adaptive') === 'suggest' ? 'suggest' : 'auto') : null;
+  }, []);
+  const adaptivePolicy = useMemo(() => (mode ? AdaptivePolicy.for(exhibition, mode) : null), [mode, exhibition]);
   const policy = useMemo(
     () => adaptivePolicy ?? new StaticPolicy(works, exhibition.defaults),
     [adaptivePolicy, works, exhibition],
   );
   const runMeta = useMemo(
     () => ({
-      condition: adaptive ? ('adaptive' as const) : ('static' as const),
+      condition: mode === 'suggest' ? ('suggest' as const) : mode ? ('adaptive' as const) : ('static' as const),
       exhibition: exhibition.id,
       contentHash: hashContent({ exhibition, works: [...works.values()] }),
     }),
-    [adaptive, exhibition, works],
+    [mode, exhibition, works],
   );
   const hasTags = useMemo(() => [...works.values()].some((w) => Object.keys(w.tags).length > 0), [works]);
   const chapterTitles = useMemo(() => Object.fromEntries(exhibition.chapters.map((c) => [c.id, c.title])), [exhibition]);
@@ -53,6 +58,7 @@ export function App({ exhibition, works }: LoadedExhibition) {
               {exhibition.chapters.map((chapter) => (
                 <ChapterAdaptation key={chapter.id} chapterId={chapter.id}>
                   <div id={chapter.id} className="chapter" data-chapter={chapter.id}>
+                    <SuggestionCard chapterId={chapter.id} />
                     {chapter.sections.map((section) => {
                       const layout = layouts[section.layout];
                       const Component = layout.component;
